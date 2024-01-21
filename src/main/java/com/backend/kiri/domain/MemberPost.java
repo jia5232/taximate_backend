@@ -6,14 +6,14 @@ import lombok.Setter;
 
 @Entity
 @Getter @Setter
-public class UserPost {
+public class MemberPost {
     @Id @GeneratedValue
-    @Column(name = "user_post_id")
+    @Column(name = "member_post_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")

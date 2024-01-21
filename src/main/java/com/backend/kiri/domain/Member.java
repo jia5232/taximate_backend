@@ -9,14 +9,12 @@ import lombok.Setter;
 
 @Entity
 @Getter @Setter
-public class User {
+public class Member {
     @Id @GeneratedValue
-    @Column(name = "user_id")
+    @Column(name = "member_id")
     private Long id;
     private String nickname;
-    private String email;
+    private String username; //이메일
     private String password;
     private String univ;
-
-    //private List<Message> messages 가 필요한가?
 }
