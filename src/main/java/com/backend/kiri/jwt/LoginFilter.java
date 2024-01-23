@@ -3,15 +3,26 @@ package com.backend.kiri.jwt;
 import com.backend.kiri.domain.security.RefreshToken;
 import com.backend.kiri.repository.security.RefreshTokenRepository;
 import com.backend.kiri.security.CustomUserDetails;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.StreamUtils;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 // UsernamePasswordAuthenticationFilter를 상속하므로
 // UsernamePasswordAuthenticationFilter의 정의에 따라 "/login"경로로 POST 요청을 검증하게 됨.
@@ -20,6 +31,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JWTUtil jwtUtil;
+    private final ObjectMapper objectMapper;
     private static final long ACCESS_TOKEN_TIME = 1000 * 60; // 30 분 1000ms(=1s) *60=(1min)*30 =(30min) -> 1000 * 60 * 30L
     private static final long REFRESH_TOKEN_TIME = 1000 * 60 * 5;
 
@@ -31,12 +43,30 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response){
         System.out.println("attemptAuthentication");
-        String email = obtainEmail(request);
-        String password = obtainPassword(request);
 
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(email, password, null);
+        try {
+            // Read JSON data from request body
+            StringBuilder requestBody = new StringBuilder();
+            BufferedReader reader = request.getReader();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                requestBody.append(line);
+            }
 
-        return authenticationManager.authenticate(authToken);
+            // Parse JSON data
+            Map<String, String> emailPasswordMap = objectMapper.readValue(requestBody.toString(), new TypeReference<Map<String, String>>() {});
+
+            String email = emailPasswordMap.get("email");
+            String password = emailPasswordMap.get("password");
+            System.out.println("email:" + email + " " + "password:" + password);
+
+            // Create UsernamePasswordAuthenticationToken
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(email, password, null);
+
+            return authenticationManager.authenticate(authToken);
+        } catch (IOException e) {
+            throw new AuthenticationServiceException("Error reading/parsing request body", e);
+        }
     }
 
     // 로그인 성공시 실행됨 -> 여기서 jwt 발행

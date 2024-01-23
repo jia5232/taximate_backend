@@ -4,6 +4,7 @@ import com.backend.kiri.jwt.JWTFilter;
 import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.jwt.LoginFilter;
 import com.backend.kiri.repository.security.RefreshTokenRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -20,8 +21,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
@@ -30,6 +29,7 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final ObjectMapper objectMapper;
 
     //AuthenticationManager Bean 등록
     @Bean
@@ -71,7 +71,7 @@ public class SecurityConfig {
         http.addFilterBefore(new JWTFilter(jwtUtil, refreshTokenRepository), LoginFilter.class);
 
         // UsernamePasswordAuthenticationFilter의 자리를 우리의 커스텀 필터로 대체한다.
-        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), refreshTokenRepository, jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), refreshTokenRepository, jwtUtil, objectMapper), UsernamePasswordAuthenticationFilter.class);
 
         // jwt방식에서는 세션을 stateless하게 관리한다.
         http.sessionManagement((session) -> session
@@ -84,9 +84,13 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(Arrays.asList("https://api.example.com"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST"));
-        configuration.addExposedHeader("Authorization");
+        configuration.addAllowedOrigin("http://localhost:64700");
+
+        configuration.addAllowedHeader("Authorization");
+        configuration.addAllowedHeader("Content-Type");
+
+        configuration.addAllowedMethod("GET");
+        configuration.addAllowedMethod("POST");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
