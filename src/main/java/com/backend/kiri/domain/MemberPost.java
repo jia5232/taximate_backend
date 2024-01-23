@@ -21,7 +21,7 @@ public class MemberPost {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
-    private boolean isAuthor;
+    private Boolean isAuthor;
 
     public MemberPost(Post post, Member member, boolean isAuthor) {
         this.post = post;

@@ -1,4 +1,4 @@
-package com.backend.kiri.domain.dto;
+package com.backend.kiri.service.dto;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,7 +7,7 @@ import lombok.ToString;
 @ToString
 @Getter @Setter
 public class JoinDto {
-    private String username; //이메일
+    private String email; //이메일
     private String password;
     private String nickname;
     private String univName;

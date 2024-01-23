@@ -1,4 +1,4 @@
-package com.backend.kiri.domain.dto;
+package com.backend.kiri.service.dto;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

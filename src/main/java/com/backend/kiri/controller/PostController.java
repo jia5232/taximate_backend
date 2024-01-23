@@ -1,6 +1,6 @@
 package com.backend.kiri.controller;
 
-import com.backend.kiri.domain.dto.PostDto;
+import com.backend.kiri.service.dto.PostDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
