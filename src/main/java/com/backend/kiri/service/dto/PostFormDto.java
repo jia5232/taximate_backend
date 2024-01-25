@@ -13,17 +13,18 @@ public class PostDto {
     private String arrive;
     private LocalDateTime departTime;
     private int cost;
-    private int maxUser;
-    private int currentUser;
+    private int maxMember;
+    private int nowMember;
 
-    public PostDto(Long id, Boolean isFromSchool, String depart, String arrive, LocalDateTime departTime, int cost, int maxUser, int currentUser) {
+    public PostDto(Long id, Boolean isFromSchool, String depart, String arrive, LocalDateTime departTime, int cost, int maxMember, int nowMember
+    ) {
         this.id = id;
         this.isFromSchool = isFromSchool;
         this.depart = depart;
         this.arrive = arrive;
         this.departTime = departTime;
         this.cost = cost;
-        this.maxUser = maxUser;
-        this.currentUser = currentUser;
+        this.maxMember = maxMember;
+        this.nowMember = nowMember;
     }
 }
