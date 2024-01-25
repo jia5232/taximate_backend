@@ -37,7 +37,6 @@ public class JWTFilter extends OncePerRequestFilter { //jwt 검증하는 필터
         if(jwtUtil.isExpired(token)){
             System.out.println("token expired");
             //401 토큰 에러 발생! -> ExpiredJwtException을 throw 해야 한다.
-
             //if refreshToken 데이터베이스에 있으면 지워줘야 함.
 
             filterChain.doFilter(request, response);

@@ -21,6 +21,10 @@ public class Post {
     private LocalDateTime departTime;
     private LocalDateTime createdTime;
     private Integer cost;
+    private Integer maxMember; //최대 인원수
+    private Integer nowMember; //현재 인원수
+
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MemberPost> memberPosts = new ArrayList<>();
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

@@ -45,7 +45,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         System.out.println("attemptAuthentication");
 
         try {
-            // Read JSON data from request body
+            // request body에서 json으로 들어온 값 읽어오기
             StringBuilder requestBody = new StringBuilder();
             BufferedReader reader = request.getReader();
             String line;
@@ -53,14 +53,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                 requestBody.append(line);
             }
 
-            // Parse JSON data
             Map<String, String> emailPasswordMap = objectMapper.readValue(requestBody.toString(), new TypeReference<Map<String, String>>() {});
 
             String email = emailPasswordMap.get("email");
             String password = emailPasswordMap.get("password");
             System.out.println("email:" + email + " " + "password:" + password);
 
-            // Create UsernamePasswordAuthenticationToken
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(email, password, null);
 
             return authenticationManager.authenticate(authToken);
