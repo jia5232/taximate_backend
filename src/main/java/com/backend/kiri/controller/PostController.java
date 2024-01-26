@@ -1,26 +1,39 @@
 package com.backend.kiri.controller;
 
-import com.backend.kiri.service.dto.PostDto;
+import com.backend.kiri.service.PostService;
+import com.backend.kiri.service.dto.post.PostDetailDto;
+import com.backend.kiri.service.dto.post.PostFormDto;
+import com.backend.kiri.service.dto.post.PostListDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
-public class PostController { //더미
-    @GetMapping("/posts")
-    public List<PostDto> posts(){
-        List<PostDto> posts = new ArrayList<>();
-        posts.add(new PostDto(1L, true, "국민대","보문역", LocalDateTime.now().plusHours(2), 10000,3,1));
-        posts.add(new PostDto(2L, true, "국민대","성신여대입구역", LocalDateTime.now().plusHours(2), 10000,3,1));
-        posts.add(new PostDto(3L, true, "국민대","길음역", LocalDateTime.now().plusHours(2), 10000,3,1));
-        posts.add(new PostDto(3L, true, "국민대","보문역", LocalDateTime.now().plusHours(2), 10000,3,1));
-        posts.add(new PostDto(3L, true, "국민대","보문역", LocalDateTime.now().plusHours(2), 10000,3,1));
-        return posts;
+public class PostController {
+    final PostService postService;
 
+    @PostMapping("/posts/create")
+    public ResponseEntity createPost(@RequestBody PostFormDto postFormDto, @RequestHeader("Authorization") String authorization){
+        String accessToken = authorization.split(" ")[1];
+        Long postId = postService.createPost(postFormDto, accessToken);
+        return ResponseEntity.ok(postId);
     }
+
+    @GetMapping("/posts/{postId}")
+    public ResponseEntity<PostDetailDto> detailPost(@PathVariable Long postId){
+        PostDetailDto postDetailDto = postService.detailPost(postId);
+        return ResponseEntity.ok(postDetailDto);
+    }
+
+    @GetMapping("/posts")
+    public ResponseEntity<PostListDto> getPosts(
+            @RequestParam(required = false, defaultValue = "0") Long lastPostId,
+            @RequestParam(defaultValue = "10") int pageSize
+            ){
+        PostListDto postListDto = postService.getPosts(lastPostId, pageSize);
+        return ResponseEntity.ok(postListDto);
+    }
+
+    //updatePost, deletePost 추후 작업 필요!
 }

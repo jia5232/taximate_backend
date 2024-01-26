@@ -5,12 +5,9 @@ import com.backend.kiri.domain.security.RefreshToken;
 import com.backend.kiri.exception.NotFoundRefreshTokenException;
 import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.repository.security.RefreshTokenRepository;
-import com.backend.kiri.security.CustomUserDetails;
-import com.backend.kiri.service.dto.JoinDto;
+import com.backend.kiri.service.dto.member.JoinDto;
 import com.backend.kiri.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +22,8 @@ public class MemberService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JWTUtil jwtUtil;
 
-    private static final long ACCESS_TOKEN_TIME = 1000 * 60; // 30 분 1000ms(=1s) *60=(1min)*30 =(30min) -> 1000 * 60 * 30L
-    private static final long REFRESH_TOKEN_TIME = 1000 * 60 * 5;
+    private static final long ACCESS_TOKEN_TIME = 1000 * 60 * 5; // 30 분 1000ms(=1s) *60=(1min)*30 =(30min) -> 1000 * 60 * 30L
+    private static final long REFRESH_TOKEN_TIME = 1000 * 60 * 30;
 
     public void joinProcess(JoinDto joinDto) {
         String email = joinDto.getEmail();

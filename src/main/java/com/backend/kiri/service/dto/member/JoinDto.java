@@ -1,4 +1,4 @@
-package com.backend.kiri.service.dto;
+package com.backend.kiri.service.dto.member;
 
 import lombok.Getter;
 import lombok.Setter;

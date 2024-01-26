@@ -1,6 +1,6 @@
 package com.backend.kiri.controller;
 
-import com.backend.kiri.service.dto.JoinDto;
+import com.backend.kiri.service.dto.member.JoinDto;
 import com.backend.kiri.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
