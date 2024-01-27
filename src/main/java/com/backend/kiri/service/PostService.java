@@ -70,23 +70,27 @@ public class PostService {
         return post.getId();
     }
 
-    public PostDetailDto detailPost(Long postId){
+    public PostDetailDto detailPost(Long postId, String accessToken){
+        String email = jwtUtil.getUsername(accessToken);
+
         Optional<Post> post = postRepository.findById(postId);
         if(post==null){
             throw new NotFoundPostException("PostService.detailPost: NotFoundPost");
         }
         Post findPost = post.get();
-        return convertToDetailDto(findPost);
+        return convertToDetailDto(findPost, email);
     }
 
-    public PostListDto getPosts(Long lastPostId, int pageSize){
+    public PostListDto getPosts(Long lastPostId, int pageSize, String accessToken){
+        String email = jwtUtil.getUsername(accessToken);
+
         Pageable pageable = PageRequest.of(0, pageSize);
         List<Post> posts = postRepository.findPostsAfterCursor(lastPostId, pageable);
 
         PostListDto postListDto = new PostListDto();
 
         List<PostDetailDto> postDetailDtos = posts.stream()
-                .map((p) -> convertToDetailDto(p)).collect(Collectors.toList());
+                .map((p) -> convertToDetailDto(p, email)).collect(Collectors.toList());
         postListDto.setData(postDetailDtos);
 
         PostListDto.MetaData metaData = new PostListDto.MetaData();
@@ -97,7 +101,7 @@ public class PostService {
         return postListDto;
     }
 
-    private static PostDetailDto convertToDetailDto(Post findPost) {
+    private static PostDetailDto convertToDetailDto(Post findPost, String email) {
         PostDetailDto postDetailDto = new PostDetailDto();
         postDetailDto.setId(findPost.getId());
         postDetailDto.setIsFromSchool(findPost.isFromSchool());
@@ -107,6 +111,11 @@ public class PostService {
         postDetailDto.setCost(findPost.getCost());
         postDetailDto.setMaxMember(findPost.getMaxMember());
         postDetailDto.setNowMember(findPost.getNowMember());
+
+        boolean isAuthor = findPost.getMemberPosts().stream()
+                .anyMatch(mp -> mp.getMember().getEmail().equals(email) && Boolean.TRUE.equals(mp.getIsAuthor()));
+        postDetailDto.setIsAuthor(isAuthor);
+
         return postDetailDto;
     }
 }

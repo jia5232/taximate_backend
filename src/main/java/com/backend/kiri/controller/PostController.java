@@ -21,19 +21,22 @@ public class PostController {
     }
 
     @GetMapping("/posts/{postId}")
-    public ResponseEntity<PostDetailDto> detailPost(@PathVariable Long postId){
-        PostDetailDto postDetailDto = postService.detailPost(postId);
+    public ResponseEntity<PostDetailDto> detailPost(@PathVariable Long postId, @RequestHeader("Authorization") String authorization){
+        String accessToken = authorization.split(" ")[1];
+        PostDetailDto postDetailDto = postService.detailPost(postId, accessToken);
         return ResponseEntity.ok(postDetailDto);
     }
 
     @GetMapping("/posts")
     public ResponseEntity<PostListDto> getPosts(
             @RequestParam(required = false, defaultValue = "0") Long lastPostId,
-            @RequestParam(defaultValue = "10") int pageSize
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestHeader("Authorization") String authorization
             ){
-        PostListDto postListDto = postService.getPosts(lastPostId, pageSize);
+        String accessToken = authorization.split(" ")[1];
+        PostListDto postListDto = postService.getPosts(lastPostId, pageSize, accessToken);
         return ResponseEntity.ok(postListDto);
     }
 
-    //updatePost, deletePost 추후 작업 필요!
+    //deletePost 추후 작업 필요!
 }
