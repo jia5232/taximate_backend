@@ -31,10 +31,12 @@ public class PostController {
     public ResponseEntity<PostListDto> getPosts(
             @RequestParam(required = false, defaultValue = "0") Long lastPostId,
             @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false, defaultValue = "true") boolean isFromSchool,
+            @RequestParam(required = false, defaultValue = "") String searchKeyword,
             @RequestHeader("Authorization") String authorization
             ){
         String accessToken = authorization.split(" ")[1];
-        PostListDto postListDto = postService.getPosts(lastPostId, pageSize, accessToken);
+        PostListDto postListDto = postService.getPosts(lastPostId, pageSize, isFromSchool, searchKeyword, accessToken);
         return ResponseEntity.ok(postListDto);
     }
 

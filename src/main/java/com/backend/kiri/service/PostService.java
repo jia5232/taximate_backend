@@ -81,11 +81,11 @@ public class PostService {
         return convertToDetailDto(findPost, email);
     }
 
-    public PostListDto getPosts(Long lastPostId, int pageSize, String accessToken){
+    public PostListDto getPosts(Long lastPostId, int pageSize, boolean isFromSchool, String searchKeyword, String accessToken){
         String email = jwtUtil.getUsername(accessToken);
 
         Pageable pageable = PageRequest.of(0, pageSize);
-        List<Post> posts = postRepository.findPostsAfterCursor(lastPostId, pageable);
+        List<Post> posts = postRepository.findFilteredPosts(lastPostId, isFromSchool, searchKeyword, pageable);
 
         PostListDto postListDto = new PostListDto();
 
