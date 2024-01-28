@@ -5,6 +5,8 @@ import com.backend.kiri.service.dto.post.PostDetailDto;
 import com.backend.kiri.service.dto.post.PostFormDto;
 import com.backend.kiri.service.dto.post.PostListDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +38,8 @@ public class PostController {
             @RequestHeader("Authorization") String authorization
             ){
         String accessToken = authorization.split(" ")[1];
-        PostListDto postListDto = postService.getPosts(lastPostId, pageSize, isFromSchool, searchKeyword, accessToken);
+        Pageable pageable = PageRequest.of(0, pageSize);
+        PostListDto postListDto = postService.getFilteredPosts(pageable, lastPostId, isFromSchool, searchKeyword, accessToken);
         return ResponseEntity.ok(postListDto);
     }
 

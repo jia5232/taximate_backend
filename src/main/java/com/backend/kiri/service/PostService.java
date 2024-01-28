@@ -11,14 +11,23 @@ import com.backend.kiri.service.dto.post.PostDetailDto;
 import com.backend.kiri.service.dto.post.PostFormDto;
 import com.backend.kiri.service.dto.post.PostListDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -81,21 +90,42 @@ public class PostService {
         return convertToDetailDto(findPost, email);
     }
 
-    public PostListDto getPosts(Long lastPostId, int pageSize, boolean isFromSchool, String searchKeyword, String accessToken){
+    public PostListDto getFilteredPosts(Pageable pageable, Long lastPostId, Boolean isFromSchool, String searchKeyword, String accessToken){
         String email = jwtUtil.getUsername(accessToken);
 
-        Pageable pageable = PageRequest.of(0, pageSize);
-        List<Post> posts = postRepository.findFilteredPosts(lastPostId, isFromSchool, searchKeyword, pageable);
+        Specification<Post> spec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-        PostListDto postListDto = new PostListDto();
+            if(lastPostId != null){
+                predicates.add(criteriaBuilder.greaterThan(root.get("id"), lastPostId));
+            }
+
+            if(isFromSchool != null){
+                predicates.add(criteriaBuilder.equal(root.get("isFromSchool"), isFromSchool));
+            }
+
+            if(searchKeyword != null && !searchKeyword.isEmpty()){
+                Predicate departPredicate = criteriaBuilder.like(root.get("depart"), "%" + searchKeyword + "%");
+                Predicate arrivePredicate = criteriaBuilder.like(root.get("arrive"), "%" + searchKeyword + "%");
+                predicates.add(criteriaBuilder.or(departPredicate, arrivePredicate));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<Post> page = postRepository.findAll(spec, pageable);
+        List<Post> posts = page.getContent();
 
         List<PostDetailDto> postDetailDtos = posts.stream()
                 .map((p) -> convertToDetailDto(p, email)).collect(Collectors.toList());
+
+        PostListDto postListDto = new PostListDto();
         postListDto.setData(postDetailDtos);
 
         PostListDto.MetaData metaData = new PostListDto.MetaData();
         metaData.setCount(postDetailDtos.size());
-        metaData.setHasMore(postDetailDtos.size()==pageSize); //가져오고싶은 만큼 다 가져왔으면 데이터가 더 있다는거니까!
+        metaData.setHasMore(!page.isLast());
+        //Page 객체가 제공하는 isLast() : 현재페이지가 마지막일 경우 true를 리턴. 따라서 hasMore는 !page.isLast()가 된다.
         postListDto.setMeta(metaData);
 
         return postListDto;
