@@ -32,7 +32,7 @@ public class PostController {
     @GetMapping("/posts")
     public ResponseEntity<PostListDto> getPosts(
             @RequestParam(required = false, defaultValue = "0") Long lastPostId,
-            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "20") int pageSize,
             @RequestParam(required = false, defaultValue = "true") boolean isFromSchool,
             @RequestParam(required = false, defaultValue = "") String searchKeyword,
             @RequestHeader("Authorization") String authorization
