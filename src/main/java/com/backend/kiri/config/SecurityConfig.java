@@ -5,6 +5,7 @@ import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.jwt.LoginFilter;
 import com.backend.kiri.repository.security.RefreshTokenRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -59,12 +60,16 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/", "/signup", "/token").permitAll()
                         .anyRequest().authenticated());
 
-        // 에러로그
+        // 에러
         http.exceptionHandling((exceptionHandling) -> exceptionHandling
                 .authenticationEntryPoint((request, response, authException) -> {
-                    // 인증 실패 세부 정보 기록
-                    System.out.println("Authentication failed:"+authException.getMessage());
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
+                    if (authException.getCause() instanceof ExpiredJwtException) {
+                        System.out.println("JWT Token Expired: " + authException.getMessage());
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT Token has expired");
+                    } else {
+                        System.out.println("Authentication failed: " + authException.getMessage());
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
+                    }
                 }));
 
         // LoginFilter 앞에 JWTFilter를 넣어준다.

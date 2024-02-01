@@ -22,8 +22,8 @@ public class MemberService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JWTUtil jwtUtil;
 
-    private static final long ACCESS_TOKEN_TIME = 1000 * 60 * 5; // 30 분 1000ms(=1s) *60=(1min)*30 =(30min) -> 1000 * 60 * 30L
-    private static final long REFRESH_TOKEN_TIME = 1000 * 60 * 30;
+    private static final long ACCESS_TOKEN_TIME = 1000 * 60 * 1; // 30 분 1000ms(=1s) *60=(1min)*30 =(30min) -> 1000 * 60 * 30L
+    private static final long REFRESH_TOKEN_TIME = 1000 * 60 * 5;
 
     public void joinProcess(JoinDto joinDto) {
         String email = joinDto.getEmail();
@@ -78,19 +78,6 @@ public class MemberService {
         refreshTokenRepository.save(createdRefreshToken);
 
         // 이미 세션 생성은 JWTFilter에서 끝났으므로 다시 세션을 생성해줄 필요가 없다.
-
-//        // member를 생성하여 값 set
-//        Member member = new Member();
-//        member.setEmail(email);
-//
-//        // UserDetails에 회원 정보 객체 담기
-//        CustomUserDetails customUserDetails = new CustomUserDetails(member);
-//
-//        // 스프링 시큐리티 인증 토큰 생성 -> customUserDetails.getAuthorities(?)
-//        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
-//
-//        // 세션에 사용자 등록
-//        SecurityContextHolder.getContext().setAuthentication(authToken);
 
         return result;
     }

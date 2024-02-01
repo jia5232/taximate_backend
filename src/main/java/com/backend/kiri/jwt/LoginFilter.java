@@ -32,8 +32,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
-    private static final long ACCESS_TOKEN_TIME = 1000 * 60 * 5; // 30 분 1000ms(=1s) *60=(1min)*30 =(30min) -> 1000 * 60 * 30L
-    private static final long REFRESH_TOKEN_TIME = 1000 * 60 * 30;
+    private static final long ACCESS_TOKEN_TIME = 1000 * 60 * 1; // 30 분 1000ms(=1s) *60=(1min)*30 =(30min) -> 1000 * 60 * 30L
+    private static final long REFRESH_TOKEN_TIME = 1000 * 60 * 5;
 
     // 요청에서 이메일을 가져와야 하므로 커스텀메소드 추가.
     private String obtainEmail(HttpServletRequest request){
