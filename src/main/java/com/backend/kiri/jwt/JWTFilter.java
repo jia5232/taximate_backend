@@ -4,12 +4,16 @@ import com.backend.kiri.domain.Member;
 import com.backend.kiri.domain.security.RefreshToken;
 import com.backend.kiri.repository.security.RefreshTokenRepository;
 import com.backend.kiri.security.CustomUserDetails;
+import com.backend.kiri.service.dto.security.ResponseDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -56,9 +60,21 @@ public class JWTFilter extends OncePerRequestFilter { //jwt 검증하는 필터
             // 세션에 사용자 등록
             SecurityContextHolder.getContext().setAuthentication(authToken);
         } catch (ExpiredJwtException e){
-            throw new AuthenticationServiceException("JWT Token expired:", e);
-        }
+            System.out.println("catch!:"+e);
 
+            ObjectMapper objectMapper = new ObjectMapper();
+            ResponseDto responseDto = new ResponseDto();
+            responseDto.setStatus("401");
+            responseDto.setMessage("토큰이 만료되었습니다.");
+
+            response.setCharacterEncoding("utf-8");
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+
+            response.getWriter().write(objectMapper.writeValueAsString(responseDto));
+
+            return;
+        }
         filterChain.doFilter(request, response);
     }
 }

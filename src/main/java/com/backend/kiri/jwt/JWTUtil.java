@@ -1,5 +1,6 @@
 package com.backend.kiri.jwt;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Jwts;
@@ -24,11 +25,16 @@ public class JWTUtil {
     }
 
     public Boolean isExpired(String token){
-        return Jwts.parser().verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload().getExpiration().before(new Date());
+        try {
+            return Jwts.parser().verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token) //여기서 이미 유효성 검사를 하기 때문에 try catch문 써서 잡아줌
+                    .getPayload().getExpiration().before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true; // 만료된 경우 true 반환
+        }
     }
+
 
     public String createJwt(String email, Long expiredMs){
         return Jwts.builder()

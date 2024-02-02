@@ -63,13 +63,9 @@ public class SecurityConfig {
         // 에러
         http.exceptionHandling((exceptionHandling) -> exceptionHandling
                 .authenticationEntryPoint((request, response, authException) -> {
-                    if (authException.getCause() instanceof ExpiredJwtException) {
-                        System.out.println("JWT Token Expired: " + authException.getMessage());
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT Token has expired");
-                    } else {
-                        System.out.println("Authentication failed: " + authException.getMessage());
-                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
-                    }
+                    // 인증 실패 세부 정보 기록
+                    System.out.println("Authentication failed:"+authException.getMessage());
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
                 }));
 
         // LoginFilter 앞에 JWTFilter를 넣어준다.
