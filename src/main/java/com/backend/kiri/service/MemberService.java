@@ -2,17 +2,20 @@ package com.backend.kiri.service;
 
 import com.backend.kiri.domain.Member;
 import com.backend.kiri.domain.security.RefreshToken;
+import com.backend.kiri.exception.NotFoundMemberException;
 import com.backend.kiri.exception.NotFoundRefreshTokenException;
 import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.repository.security.RefreshTokenRepository;
 import com.backend.kiri.service.dto.member.JoinDto;
 import com.backend.kiri.repository.MemberRepository;
+import com.backend.kiri.service.dto.member.MemberDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -60,7 +63,6 @@ public class MemberService {
     }
 
     public Map<String, String> createNewTokens(String refreshToken) {
-
         RefreshToken findToken = refreshTokenRepository.findById(refreshToken)
                 .orElseThrow(() -> new NotFoundRefreshTokenException("리프레시 토큰을 찾을 수 없습니다."));
 
@@ -80,5 +82,19 @@ public class MemberService {
         // 이미 세션 생성은 JWTFilter에서 끝났으므로 다시 세션을 생성해줄 필요가 없다.
 
         return result;
+    }
+
+    public MemberDto getMember(String accessToken){
+        String email = jwtUtil.getUsername(accessToken);
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
+
+        MemberDto memberDto = new MemberDto();
+        memberDto.setId(member.getId());
+        memberDto.setEmail(member.getEmail());
+        memberDto.setNickname(member.getNickname());
+        memberDto.setUnivName(member.getUnivName());
+
+        return memberDto;
     }
 }
