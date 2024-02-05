@@ -3,6 +3,7 @@ package com.backend.kiri.jwt;
 import com.backend.kiri.domain.security.RefreshToken;
 import com.backend.kiri.repository.security.RefreshTokenRepository;
 import com.backend.kiri.security.CustomUserDetails;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -15,14 +16,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.util.StreamUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
-
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 // UsernamePasswordAuthenticationFilter를 상속하므로
 // UsernamePasswordAuthenticationFilter의 정의에 따라 "/login"경로로 POST 요청을 검증하게 됨.
@@ -69,7 +67,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     // 로그인 성공시 실행됨 -> 여기서 jwt 발행
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication){
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException {
         System.out.println("successfulAuthentication");
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
         String email = customUserDetails.getUsername();
@@ -80,8 +78,16 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         RefreshToken createdRefreshToken = new RefreshToken(refreshToken, email);
         refreshTokenRepository.save(createdRefreshToken);
 
-        response.addHeader("accessToken", "Bearer "+accessToken);
-        response.addHeader("refreshToken", "Bearer "+refreshToken);
+        // 바디에 담아 보내기
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("accessToken", "Bearer " + accessToken);
+        tokens.put("refreshToken", "Bearer " + refreshToken);
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String tokensJson = objectMapper.writeValueAsString(tokens);
+        response.getWriter().write(tokensJson);
     }
 
     // 로그인 실패시 실행됨

@@ -72,8 +72,8 @@ public class MemberService {
         String newRefreshToken = jwtUtil.createJwt(email, REFRESH_TOKEN_TIME);
 
         HashMap<String, String> result = new HashMap<>();
-        result.put("accessToken", newAccessToken);
-        result.put("refreshToken", newRefreshToken);
+        result.put("accessToken", "Bearer " + newAccessToken);
+        result.put("refreshToken", "Bearer " + newRefreshToken);
 
         refreshTokenRepository.delete(findToken);
         RefreshToken createdRefreshToken = new RefreshToken(newRefreshToken, email);
