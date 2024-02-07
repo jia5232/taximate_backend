@@ -57,7 +57,7 @@ public class SecurityConfig {
 
         // 경로별 인가 작업
         http.authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "/signup", "/token").permitAll()
+                        .requestMatchers("/login", "/", "/signup", "/token", "/email", "/nicknameExists").permitAll()
                         .anyRequest().authenticated());
 
         // 에러

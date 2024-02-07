@@ -2,6 +2,7 @@ package com.backend.kiri.service;
 
 import com.backend.kiri.domain.Member;
 import com.backend.kiri.domain.security.RefreshToken;
+import com.backend.kiri.exception.DuplicatedMemberException;
 import com.backend.kiri.exception.NotFoundMemberException;
 import com.backend.kiri.exception.NotFoundRefreshTokenException;
 import com.backend.kiri.jwt.JWTUtil;
@@ -10,13 +11,17 @@ import com.backend.kiri.service.dto.member.JoinDto;
 import com.backend.kiri.repository.MemberRepository;
 import com.backend.kiri.service.dto.member.MemberDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 
 @RequiredArgsConstructor
 @Service
@@ -26,9 +31,44 @@ public class MemberService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JWTUtil jwtUtil;
+    private final JavaMailSender javaMailSender;
 
     private static final long ACCESS_TOKEN_TIME = 1000 * 60 * 1; // 30 분 1000ms(=1s) *60=(1min)*30 =(30min) -> 1000 * 60 * 30L
     private static final long REFRESH_TOKEN_TIME = 1000 * 60 * 5;
+
+    public Map<String, String> sendEmail(String email) {
+        HashMap<String, String> map = new HashMap<>();
+        Boolean exists = memberRepository.existsByEmail(email);
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        int authNumber;
+
+        if(exists){
+            map.put("exist", "이미 가입한 이메일입니다.");
+            return map;
+        } else{
+            SecureRandom secureRandom = new SecureRandom();
+            authNumber = 100000 + secureRandom.nextInt(900000);
+
+            message.setTo(email);
+
+            message.setSubject("끼리 회원가입을 위한 이메일 인증번호 메일입니다.");
+            message.setText("인증번호는 "+authNumber+"입니다. \n끼리와 함께 오늘도 안전한 등하교 되세요 :)");
+        }
+
+        try{
+            javaMailSender.send(message);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+
+        map.put("authNumber", String.valueOf(authNumber));
+        return map;
+    }
+
+    public boolean checkNicknameDuplicate(String nickname){
+        return memberRepository.existsByNickname(nickname);
+    }
 
     public void joinProcess(JoinDto joinDto) {
         String email = joinDto.getEmail();

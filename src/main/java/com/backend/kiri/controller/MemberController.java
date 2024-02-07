@@ -3,7 +3,11 @@ package com.backend.kiri.controller;
 import com.backend.kiri.service.dto.member.JoinDto;
 import com.backend.kiri.service.MemberService;
 import com.backend.kiri.service.dto.member.MemberDto;
+import com.backend.kiri.service.dto.member.signup.EmailDto;
+import com.backend.kiri.service.dto.member.signup.NicknameDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -12,6 +16,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;
+    @PostMapping("/email")
+    public Map<String, String> sendEmail(@RequestBody EmailDto emailDto) throws Exception{
+        return memberService.sendEmail(emailDto.getEmail());
+    }
+
+    @GetMapping("/nicknameExists")
+    public ResponseEntity<Boolean> checkNicknameDuplicate(@RequestBody NicknameDto nicknameDto){
+        return ResponseEntity.ok(memberService.checkNicknameDuplicate(nicknameDto.getNickname()));
+    }
+
 
     @PostMapping("/signup")
     public String signUp(@RequestBody JoinDto joinDto){
