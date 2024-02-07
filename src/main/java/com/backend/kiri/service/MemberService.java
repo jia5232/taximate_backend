@@ -12,13 +12,15 @@ import com.backend.kiri.service.dto.member.MemberDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@Service
 @RequiredArgsConstructor
+@Service
+@Transactional
 public class MemberService {
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;

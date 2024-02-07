@@ -20,6 +20,8 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class PostService {
     final PostRepository postRepository;
     final MemberRepository memberRepository;

@@ -16,6 +16,7 @@ public class RefreshToken {
     private String refreshToken;
     private String email;
 
+
     public RefreshToken(String refreshToken, String email) {
         this.refreshToken = refreshToken;
         this.email = email;
