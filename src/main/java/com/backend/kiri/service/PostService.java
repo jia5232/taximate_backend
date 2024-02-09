@@ -57,13 +57,9 @@ public class PostService {
         post.setArrive(arrive);
 
         // 플러터에서 '2024-01-26T13:17:00.000' 형식으로 들어온 스트링을 LocalDateTime format으로 변경
-        String departTimeString = postFormDto.getDepartTime();
-        LocalDateTime departTime = LocalDateTime.parse(departTimeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        ZoneId seoulZoneId = ZoneId.of("Asia/Seoul");
-        ZonedDateTime seoulZoneDepartTime = departTime.atZone(seoulZoneId);
-        LocalDateTime realDepartTime = seoulZoneDepartTime.toLocalDateTime();
+        LocalDateTime formattedDepartTime = getFormattedDepartTime(postFormDto);
+        post.setDepartTime(formattedDepartTime);
 
-        post.setDepartTime(realDepartTime);
         post.setCreatedTime(LocalDateTime.now());
         post.setCost(postFormDto.getCost());
         post.setMaxMember(postFormDto.getMaxMember());
@@ -88,6 +84,46 @@ public class PostService {
         }
         Post findPost = post.get();
         return convertToDetailDto(findPost, email);
+    }
+
+    public Long updatePost(Long postId, PostFormDto postFormDto, String accessToken) {
+        String email = jwtUtil.getUsername(accessToken);
+        Optional<Member> member = memberRepository.findByEmail(email);
+        if(member==null){
+            throw new NotFoundMemberException("PostService.updatePost: NotFoundMember");
+        }
+
+        Post post = postRepository.findById(postId).orElseThrow(() -> new NotFoundPostException("PostService.updatePost: NotFoundPost"));
+
+        boolean isFromSchool = postFormDto.getIsFromSchool();
+        post.setFromSchool(isFromSchool);
+
+        String depart = isFromSchool ? member.get().getUnivName() : postFormDto.getDepart();
+        post.setDepart(depart);
+
+        String arrive = isFromSchool ? postFormDto.getArrive() : member.get().getUnivName();
+        post.setArrive(arrive);
+
+        post.setCost(postFormDto.getCost());
+        post.setMaxMember(postFormDto.getMaxMember());
+        post.setNowMember(postFormDto.getNowMember());
+
+        // 플러터에서 '2024-01-26T13:17:00.000' 형식으로 들어온 스트링을 LocalDateTime format으로 변경
+        LocalDateTime formattedDepartTime = getFormattedDepartTime(postFormDto);
+        post.setDepartTime(formattedDepartTime);
+
+        postRepository.save(post);
+
+        return post.getId();
+    }
+
+    private LocalDateTime getFormattedDepartTime(PostFormDto postFormDto) {
+        String departTimeString = postFormDto.getDepartTime();
+        LocalDateTime departTime = LocalDateTime.parse(departTimeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        ZoneId seoulZoneId = ZoneId.of("Asia/Seoul");
+        ZonedDateTime seoulZoneDepartTime = departTime.atZone(seoulZoneId);
+        LocalDateTime realDepartTime = seoulZoneDepartTime.toLocalDateTime();
+        return realDepartTime;
     }
 
     public PostListDto getFilteredPosts(Pageable pageable, Long lastPostId, Boolean isFromSchool, String searchKeyword, String accessToken){
@@ -156,7 +192,7 @@ public class PostService {
 
         // 조회된 Post 엔티티 목록을 PostDetailDto 목록으로 변환
         List<PostDetailDto> postDetailDtos = posts.stream()
-                .map(p -> convertToDetailDto(p, email))
+                .map(p -> convertToMyPageDetailDto(p))
                 .collect(Collectors.toList());
 
         // PostListDto 생성 및 메타데이터 설정

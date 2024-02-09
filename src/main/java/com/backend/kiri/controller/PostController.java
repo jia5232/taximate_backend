@@ -29,6 +29,13 @@ public class PostController {
         return ResponseEntity.ok(postDetailDto);
     }
 
+    @PutMapping("/posts/{postId}")
+    public ResponseEntity updatePost(@PathVariable Long postId, @RequestBody PostFormDto postFormDto, @RequestHeader("Authorization") String authorization){
+        String accessToken = authorization.split(" ")[1];
+        Long id = postService.updatePost(postId, postFormDto, accessToken);
+        return ResponseEntity.ok(id);
+    }
+
     @GetMapping("/posts")
     public ResponseEntity<PostListDto> getPosts(
             @RequestParam(required = false, defaultValue = "0") Long lastPostId,
@@ -43,9 +50,9 @@ public class PostController {
         return ResponseEntity.ok(postListDto);
     }
 
-    //deletePost 추후 작업 필요!
+    //updatePost, deletePost 추후 작업 필요!
 
-    @GetMapping("/mypage/myposts")
+    @GetMapping("/posts/myposts")
     public ResponseEntity<PostListDto> getMyPosts(
             @RequestParam(required = false, defaultValue = "0") Long lastPostId,
             @RequestParam(defaultValue = "20") int pageSize,
