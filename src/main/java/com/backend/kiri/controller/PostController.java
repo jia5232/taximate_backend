@@ -36,6 +36,13 @@ public class PostController {
         return ResponseEntity.ok(id);
     }
 
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity deletePost(@PathVariable Long postId, @RequestHeader("Authorization") String authorization){
+        String accessToken = authorization.split(" ")[1];
+        postService.deletePost(postId, accessToken);
+        return ResponseEntity.ok(postId);
+    }
+
     @GetMapping("/posts")
     public ResponseEntity<PostListDto> getPosts(
             @RequestParam(required = false, defaultValue = "0") Long lastPostId,

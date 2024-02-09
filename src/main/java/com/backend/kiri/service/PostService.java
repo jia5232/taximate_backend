@@ -5,6 +5,7 @@ import com.backend.kiri.domain.MemberPost;
 import com.backend.kiri.domain.Post;
 import com.backend.kiri.exception.NotFoundMemberException;
 import com.backend.kiri.exception.NotFoundPostException;
+import com.backend.kiri.exception.UnauthorizedAccessException;
 import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.repository.MemberRepository;
 import com.backend.kiri.repository.PostRepository;
@@ -41,19 +42,16 @@ public class PostService {
 
     public Long createPost(PostFormDto postFormDto, String accessToken) {
         String email = jwtUtil.getUsername(accessToken);
-        Optional<Member> member = memberRepository.findByEmail(email);
-        if(member==null){
-            throw new NotFoundMemberException("PostService.createPost: NotFoundMember");
-        }
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("PostService.createPost: NotFoundMember"));
 
         boolean isFromSchool = postFormDto.getIsFromSchool();
         Post post = new Post();
         post.setFromSchool(isFromSchool);
 
-        String depart = isFromSchool ? member.get().getUnivName() : postFormDto.getDepart();
+        String depart = isFromSchool ? member.getUnivName() : postFormDto.getDepart();
         post.setDepart(depart);
 
-        String arrive = isFromSchool ? postFormDto.getArrive() : member.get().getUnivName();
+        String arrive = isFromSchool ? postFormDto.getArrive() : member.getUnivName();
         post.setArrive(arrive);
 
         // 플러터에서 '2024-01-26T13:17:00.000' 형식으로 들어온 스트링을 LocalDateTime format으로 변경
@@ -68,7 +66,7 @@ public class PostService {
         //추후 채팅방 관련 작업 필요
 
         //MemberPost생성을 위한 작업
-        post.addMember(member.get(), true);
+        post.addMember(member, true);
 
         postRepository.save(post);
 
@@ -77,31 +75,22 @@ public class PostService {
 
     public PostDetailDto detailPost(Long postId, String accessToken){
         String email = jwtUtil.getUsername(accessToken);
-
-        Optional<Post> post = postRepository.findById(postId);
-        if(post==null){
-            throw new NotFoundPostException("PostService.detailPost: NotFoundPost");
-        }
-        Post findPost = post.get();
-        return convertToDetailDto(findPost, email);
+        Post post = postRepository.findById(postId).orElseThrow(() -> new NotFoundPostException("PostService.detailPost: NotFoundPost"));
+        return convertToDetailDto(post, email);
     }
 
     public Long updatePost(Long postId, PostFormDto postFormDto, String accessToken) {
         String email = jwtUtil.getUsername(accessToken);
-        Optional<Member> member = memberRepository.findByEmail(email);
-        if(member==null){
-            throw new NotFoundMemberException("PostService.updatePost: NotFoundMember");
-        }
-
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("PostService.updatePost: NotFoundMember"));
         Post post = postRepository.findById(postId).orElseThrow(() -> new NotFoundPostException("PostService.updatePost: NotFoundPost"));
 
         boolean isFromSchool = postFormDto.getIsFromSchool();
         post.setFromSchool(isFromSchool);
 
-        String depart = isFromSchool ? member.get().getUnivName() : postFormDto.getDepart();
+        String depart = isFromSchool ? member.getUnivName() : postFormDto.getDepart();
         post.setDepart(depart);
 
-        String arrive = isFromSchool ? postFormDto.getArrive() : member.get().getUnivName();
+        String arrive = isFromSchool ? postFormDto.getArrive() : member.getUnivName();
         post.setArrive(arrive);
 
         post.setCost(postFormDto.getCost());
@@ -124,6 +113,21 @@ public class PostService {
         ZonedDateTime seoulZoneDepartTime = departTime.atZone(seoulZoneId);
         LocalDateTime realDepartTime = seoulZoneDepartTime.toLocalDateTime();
         return realDepartTime;
+    }
+
+    public void deletePost(Long postId, String accessToken){
+        String email = jwtUtil.getUsername(accessToken);
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("PostService.deletePost: NotFoundMember"));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new NotFoundPostException("PostService.deletePost: NotFoundPost"));
+
+        boolean isAuthor = post.getMemberPosts().stream()
+                .anyMatch(memberPost -> memberPost.getMember().equals(member) && Boolean.TRUE.equals(memberPost.getIsAuthor()));
+
+        if(isAuthor){
+            postRepository.delete(post);
+        } else{
+            throw new UnauthorizedAccessException("PostService.deletePost: UnauthorizedAccessException");
+        }
     }
 
     public PostListDto getFilteredPosts(Pageable pageable, Long lastPostId, Boolean isFromSchool, String searchKeyword, String accessToken){
