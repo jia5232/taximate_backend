@@ -57,8 +57,6 @@ public class PostController {
         return ResponseEntity.ok(postListDto);
     }
 
-    //updatePost, deletePost 추후 작업 필요!
-
     @GetMapping("/posts/myposts")
     public ResponseEntity<PostListDto> getMyPosts(
             @RequestParam(required = false, defaultValue = "0") Long lastPostId,
