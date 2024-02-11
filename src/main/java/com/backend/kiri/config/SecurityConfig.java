@@ -5,7 +5,6 @@ import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.jwt.LoginFilter;
 import com.backend.kiri.repository.security.RefreshTokenRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -34,9 +33,10 @@ public class SecurityConfig {
 
     //AuthenticationManager Bean 등록
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception{
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
+
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
@@ -57,14 +57,13 @@ public class SecurityConfig {
 
         // 경로별 인가 작업
         http.authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "/signup", "/token", "/email", "/nicknameExists").permitAll()
-                        .anyRequest().authenticated());
-
+                .requestMatchers("/login", "/", "/signup", "/token", "/email", "/nicknameExists", "/ws-stomp/**").permitAll()
+                .anyRequest().authenticated());
         // 에러
         http.exceptionHandling((exceptionHandling) -> exceptionHandling
                 .authenticationEntryPoint((request, response, authException) -> {
                     // 인증 실패 세부 정보 기록
-                    System.out.println("Authentication failed:"+authException.getMessage());
+                    System.out.println("Authentication failed:" + authException.getMessage());
                     response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
                 }));
 
