@@ -21,6 +21,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
+
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
@@ -84,13 +86,19 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.addAllowedOrigin("http://localhost:64700");
+//        configuration.addAllowedOrigin("http://localhost:64700");
 
-        configuration.addAllowedHeader("Authorization");
-        configuration.addAllowedHeader("Content-Type");
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:64700", "https://jxy.me"));
 
-        configuration.addAllowedMethod("GET");
-        configuration.addAllowedMethod("POST");
+//        configuration.addAllowedHeader("Authorization");
+//        configuration.addAllowedHeader("Content-Type");
+//
+//        configuration.addAllowedMethod("GET");
+//        configuration.addAllowedMethod("POST");
+
+        configuration.addAllowedHeader("*");
+        configuration.addAllowedMethod("*");
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
