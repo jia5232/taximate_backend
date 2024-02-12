@@ -1,7 +1,9 @@
 package com.backend.kiri.repository;
 
+import com.backend.kiri.domain.ChatRoom;
 import com.backend.kiri.domain.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
+    Message findFirstByChatRoomOrderByCreatedTimeDesc(ChatRoom chatRoom);
 }
