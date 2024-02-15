@@ -1,5 +1,6 @@
 package com.backend.kiri.service;
 
+import com.backend.kiri.domain.ChatRoom;
 import com.backend.kiri.domain.Member;
 import com.backend.kiri.domain.MemberPost;
 import com.backend.kiri.domain.Post;
@@ -63,7 +64,9 @@ public class PostService {
         post.setMaxMember(postFormDto.getMaxMember());
         post.setNowMember(postFormDto.getNowMember());
 
-        //추후 채팅방 관련 작업 필요
+        // 채팅방 생성 및 연관관계 설정.
+        ChatRoom chatRoom = new ChatRoom();
+        post.setChatRoom(chatRoom); // post의 연관관계 메서드 사용
 
         //MemberPost생성을 위한 작업
         post.addMember(member, true);
@@ -215,6 +218,7 @@ public class PostService {
     private static PostDetailDto convertToDetailDto(Post findPost, String email) {
         PostDetailDto postDetailDto = new PostDetailDto();
         postDetailDto.setId(findPost.getId());
+        postDetailDto.setChatRoomId(findPost.getChatRoom().getId());
         postDetailDto.setIsFromSchool(findPost.isFromSchool());
         postDetailDto.setDepart(findPost.getDepart());
         postDetailDto.setArrive(findPost.getArrive());
@@ -234,6 +238,7 @@ public class PostService {
     private static PostDetailDto convertToMyPageDetailDto(Post findPost) {
         PostDetailDto postDetailDto = new PostDetailDto();
         postDetailDto.setId(findPost.getId());
+        postDetailDto.setChatRoomId(findPost.getChatRoom().getId());
         postDetailDto.setIsFromSchool(findPost.isFromSchool());
         postDetailDto.setDepart(findPost.getDepart());
         postDetailDto.setArrive(findPost.getArrive());

@@ -8,5 +8,6 @@ import lombok.ToString;
 @Getter @Setter
 public class PostDetailDto extends PostFormDto{
     private Long id;
+    private Long chatRoomId;
     private Boolean isAuthor;
 }
