@@ -9,9 +9,11 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import java.security.Principal;
 import java.util.Collections;
 
 @RequiredArgsConstructor
@@ -23,8 +25,8 @@ public class StompHandler implements ChannelInterceptor {
     // 웹소켓을 통해서 들어온 요청이 처리 되기 전에 실행됨
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        if (StompCommand.CONNECT == accessor.getCommand() || StompCommand.SEND == accessor.getCommand()) {
+        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        if (StompCommand.CONNECT == accessor.getCommand()) {
             String jwtToken = accessor.getFirstNativeHeader("Authorization");
             if (jwtToken != null && jwtToken.startsWith("Bearer ")) {
                 jwtToken = jwtToken.substring(7); // "Bearer " 제거
@@ -39,6 +41,9 @@ public class StompHandler implements ChannelInterceptor {
             } else {
                 throw new IllegalArgumentException("JWT 형식이 적절하지 않습니다.");
             }
+        }
+        if(StompCommand.SEND == accessor.getCommand()){
+            return MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());
         }
         return message;
     }

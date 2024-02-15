@@ -90,12 +90,6 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:64700", "https://jxy.me"));
 
-//        configuration.addAllowedHeader("Authorization");
-//        configuration.addAllowedHeader("Content-Type");
-//
-//        configuration.addAllowedMethod("GET");
-//        configuration.addAllowedMethod("POST");
-
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
         configuration.setAllowCredentials(true);
