@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -25,6 +27,17 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final MemberRepository memberRepository;
     private final SimpMessagingTemplate messagingTemplate;
+
+    // 채팅 내역 조회
+    public List<MessageResponseDto> getChatHistory(Long chatRoomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new NotFoundChatRoomException("채팅방을 찾을 수 없습니다."));
+
+        return messageRepository.findByChatRoom(chatRoom)
+                .stream()
+                .map(m -> convertToMessageResponseDto(m))
+                .collect(Collectors.toList());
+    }
 
     public MessageResponseDto sendMessage(MessageRequestDto messageRequestDto, String email) {
         Member sender = memberRepository.findByEmail(email)
@@ -39,13 +52,18 @@ public class ChatService {
         message.setCreatedTime(LocalDateTime.now());
         messageRepository.save(message);
 
+        MessageResponseDto messageResponseDto = convertToMessageResponseDto(message);
+
+        messagingTemplate.convertAndSend("/sub/chatroom/" + chatRoom.getId(), messageResponseDto);
+        return messageResponseDto;
+    }
+
+    private static MessageResponseDto convertToMessageResponseDto(Message message) {
         MessageResponseDto messageResponseDto = new MessageResponseDto();
         messageResponseDto.setId(message.getId());
         messageResponseDto.setContent(message.getContent());
-        messageResponseDto.setNickname(sender.getNickname());
+        messageResponseDto.setNickname(message.getSender().getNickname());
         messageResponseDto.setCreatedTime(message.getCreatedTime());
-
-        messagingTemplate.convertAndSend("/sub/chatroom/" + chatRoom.getId(), messageResponseDto);
         return messageResponseDto;
     }
 }

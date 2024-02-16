@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     @Query("SELECT cr FROM ChatRoom cr " +
             "JOIN cr.post p " +
@@ -17,4 +19,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     Page<ChatRoom> findChatRoomsByMemberAfterLastId(@Param("memberId") Long memberId,
                                                     @Param("lastId") Long lastId,
                                                     Pageable pageable);
+
+    Optional<ChatRoom> findByPostId(Long postId);
 }

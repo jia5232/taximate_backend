@@ -68,7 +68,9 @@ public class PostService {
         ChatRoom chatRoom = new ChatRoom();
         post.setChatRoom(chatRoom); // post의 연관관계 메서드 사용
 
-        //MemberPost생성을 위한 작업
+
+        // MemberPost생성을 위한 작업
+        // 글 작성자는 글을 작성할 때 이걸 통해서 joinChatRoom() 처리가 됨!
         post.addMember(member, true);
 
         postRepository.save(post);
