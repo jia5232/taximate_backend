@@ -16,6 +16,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;
+
+    // 인증 이메일을 보내주는 api, 중복 이메일 확인도 이 api 하나로 가능하도록 service단에서 구현했다.
     @PostMapping("/email")
     public Map<String, String> sendEmail(@RequestBody EmailDto emailDto) throws Exception{
         return memberService.sendEmail(emailDto.getEmail());

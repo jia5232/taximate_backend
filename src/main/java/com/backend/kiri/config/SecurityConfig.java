@@ -59,7 +59,21 @@ public class SecurityConfig {
 
         // 경로별 인가 작업
         http.authorizeHttpRequests((auth) -> auth
-                .requestMatchers("/login", "/", "/signup", "/token", "/email", "/nicknameExists", "/ws-stomp/**").permitAll()
+                .requestMatchers(
+                        "/login",
+                        "/",
+                        "/signup",
+                        "/token",
+                        "/email",
+                        "/nicknameExists",
+                        "/ws-stomp/**",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**", // OpenAPI 문서
+                        "/swagger-ui.html",
+                        "/webjars/**",
+                        "/swagger-resources/**",
+                        "/swagger-resources",
+                        "/proxy/**").permitAll()
                 .anyRequest().authenticated());
         // 에러
         http.exceptionHandling((exceptionHandling) -> exceptionHandling
@@ -88,7 +102,7 @@ public class SecurityConfig {
 
 //        configuration.addAllowedOrigin("http://localhost:64700");
 
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:64700", "https://jxy.me"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:64700", "https://jxy.me", "http://localhost:8080/swagger-ui/index.html"));
 
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
