@@ -106,8 +106,10 @@ public class ChatRoomService {
         Page<ChatRoom> chatRoomPage = chatRoomRepository.findChatRoomsByMemberAfterLastId(member.getId(), lastPostId, pageable);
         List<ChatRoomDetailDto> chatRoomDetailDtos = chatRoomPage.getContent().stream()
                 .map(chatRoom -> {
-                    Message lastMessage = messageRepository.findFirstByChatRoomCustom(chatRoom); //얘가 문제가 있네 확실히
-                    return convertToChatRoomDetailDto(chatRoom, lastMessage);
+                    Pageable firstMessagePageable = PageRequest.of(0, 1);
+                    List<Message> messages = messageRepository.findFirstByChatRoomCustom(chatRoom, firstMessagePageable);
+                    Message lastMessage = messages.isEmpty() ? null : messages.get(0);
+                    return convertToChatRoomDetailDto(chatRoom, lastMessage, email);
                 })
                 .collect(Collectors.toList());
 
@@ -121,10 +123,10 @@ public class ChatRoomService {
         return dto;
     }
 
-    private ChatRoomDetailDto convertToChatRoomDetailDto(ChatRoom chatRoom, Message lastMessage) {
+    private ChatRoomDetailDto convertToChatRoomDetailDto(ChatRoom chatRoom, Message lastMessage, String email) {
         ChatRoomDetailDto dto = new ChatRoomDetailDto();
         dto.setChatRoomId(chatRoom.getId());
-        dto.setPostDetailDto(convertToPostDetailDto(chatRoom.getPost(), lastMessage != null ? lastMessage.getSender().getEmail() : null));
+        dto.setPostDetailDto(convertToPostDetailDto(chatRoom.getPost(), email));
         if (lastMessage != null) {
             dto.setLastMessageDetail(convertToMessageDetailDto(lastMessage));
         } else {
