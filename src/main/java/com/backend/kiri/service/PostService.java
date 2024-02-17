@@ -4,6 +4,7 @@ import com.backend.kiri.domain.ChatRoom;
 import com.backend.kiri.domain.Member;
 import com.backend.kiri.domain.MemberPost;
 import com.backend.kiri.domain.Post;
+import com.backend.kiri.exception.NotFoundChatRoomException;
 import com.backend.kiri.exception.NotFoundMemberException;
 import com.backend.kiri.exception.NotFoundPostException;
 import com.backend.kiri.exception.UnauthorizedAccessException;
@@ -216,6 +217,11 @@ public class PostService {
         return postListDto;
     }
 
+    public PostDetailDto getPostInfoByChatRoomId(Long chatRoomId, String accessToken){
+        String email = jwtUtil.getUsername(accessToken);
+        Post post = postRepository.findByChatRoom_Id(chatRoomId).orElseThrow(() -> new NotFoundChatRoomException("Not Found ChatRoom"));
+        return convertToDetailDto(post, email);
+    }
 
     private static PostDetailDto convertToDetailDto(Post findPost, String email) {
         PostDetailDto postDetailDto = new PostDetailDto();

@@ -68,4 +68,12 @@ public class PostController {
         PostListDto postListDto = postService.getMyPosts(pageable, lastPostId, accessToken);
         return ResponseEntity.ok(postListDto);
     }
+
+    //채팅방에서 post 정보를 조회하기 위한 api
+    @GetMapping("/posts/info/{chatRoomId}")
+    public ResponseEntity<PostDetailDto> getPostInfoByChatRoomId(@PathVariable Long chatRoomId, @RequestHeader("Authorization") String authorization) {
+        String accessToken = authorization.split(" ")[1];
+        PostDetailDto postDetailDto = postService.getPostInfoByChatRoomId(chatRoomId, accessToken);
+        return ResponseEntity.ok(postDetailDto);
+    }
 }
