@@ -185,13 +185,14 @@ public class PostService {
             List<Predicate> predicates = new ArrayList<>();
 
             // lastPostId가 있으면, 해당 ID 이후의 게시물만 조회
-            if (lastPostId != null) {
+            if (lastPostId != 0) { // defaultValue가 "0"이므로, 0이 아닐 때만 조건 추가
                 predicates.add(criteriaBuilder.greaterThan(root.get("id"), lastPostId));
             }
 
+            // 게시물과 회원을 조인하고, 현재 사용자가 작성자인 게시물만 필터링
             Join<Post, MemberPost> memberPostJoin = root.join("memberPosts");
-            Join<MemberPost, Member> memberJoin = memberPostJoin.join("member");
-            predicates.add(criteriaBuilder.equal(memberJoin.get("email"), email));
+            predicates.add(criteriaBuilder.equal(memberPostJoin.get("member").get("email"), email));
+            predicates.add(criteriaBuilder.isTrue(memberPostJoin.get("isAuthor"))); // 작성자인 경우만 필터링
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
@@ -205,7 +206,6 @@ public class PostService {
                 .map(p -> convertToMyPageDetailDto(p))
                 .collect(Collectors.toList());
 
-        // PostListDto 생성 및 메타데이터 설정
         PostListDto postListDto = new PostListDto();
         postListDto.setData(postDetailDtos);
 
