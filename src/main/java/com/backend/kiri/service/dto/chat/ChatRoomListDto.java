@@ -11,12 +11,12 @@ import java.util.List;
 @Setter
 public class ChatRoomListDto {
     private MetaData meta;
-    private List<ChatRoomDetailDto> data;
+    private List<ChatRoomDto> data;
 
     @ToString
     @Getter @Setter
     public static class MetaData {
-        private Long count;
+        private int count;
         private boolean hasMore;
     }
 }

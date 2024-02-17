@@ -7,10 +7,8 @@ import com.backend.kiri.exception.NotFoundMemberException;
 import com.backend.kiri.exception.NotFoundPostException;
 import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.repository.*;
-import com.backend.kiri.service.dto.chat.ChatRoomDetailDto;
+import com.backend.kiri.service.dto.chat.ChatRoomDto;
 import com.backend.kiri.service.dto.chat.ChatRoomListDto;
-import com.backend.kiri.service.dto.chat.MessageDetailDto;
-import com.backend.kiri.service.dto.post.PostDetailDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -104,63 +102,31 @@ public class ChatRoomService {
         Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("NotFoundMember"));
 
         Page<ChatRoom> chatRoomPage = chatRoomRepository.findChatRoomsByMemberAfterLastId(member.getId(), lastPostId, pageable);
-        List<ChatRoomDetailDto> chatRoomDetailDtos = chatRoomPage.getContent().stream()
+        List<ChatRoomDto> chatRoomDtos = chatRoomPage.getContent().stream()
                 .map(chatRoom -> {
-                    Pageable firstMessagePageable = PageRequest.of(0, 1);
-                    List<Message> messages = messageRepository.findFirstByChatRoomCustom(chatRoom, firstMessagePageable);
-                    Message lastMessage = messages.isEmpty() ? null : messages.get(0);
-                    return convertToChatRoomDetailDto(chatRoom, lastMessage, email);
-                })
-                .collect(Collectors.toList());
+                    Post post = chatRoom.getPost();
+                    ChatRoomDto chatRoomDto = new ChatRoomDto();
+                    chatRoomDto.setChatRoomId(chatRoom.getId());
+                    chatRoomDto.setDepart(post.getDepart());
+                    chatRoomDto.setArrive(post.getArrive());
+                    chatRoomDto.setDepartTime(post.getDepartTime());
+                    chatRoomDto.setNowMember(post.getNowMember());
 
-        return convertToChatRoomListDto(chatRoomDetailDtos, chatRoomPage.isLast());
-    }
+                    Message lastMessage = messageRepository.findFirstByChatRoomCustom(chatRoom, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
+                    if(lastMessage != null){
+                        chatRoomDto.setLastMessageContent(lastMessage.getContent());
+                        chatRoomDto.setMessageCreatedTime(lastMessage.getCreatedTime());
+                    }
+                    return chatRoomDto;
+                }).collect(Collectors.toList());
 
-    private MessageDetailDto convertToMessageDetailDto(Message message) {
-        MessageDetailDto dto = new MessageDetailDto();
-        dto.setContent(message.getContent());
-        dto.setCreatedTime(message.getCreatedTime());
-        return dto;
-    }
-
-    private ChatRoomDetailDto convertToChatRoomDetailDto(ChatRoom chatRoom, Message lastMessage, String email) {
-        ChatRoomDetailDto dto = new ChatRoomDetailDto();
-        dto.setChatRoomId(chatRoom.getId());
-        dto.setPostDetailDto(convertToPostDetailDto(chatRoom.getPost(), email));
-        if (lastMessage != null) {
-            dto.setLastMessageDetail(convertToMessageDetailDto(lastMessage));
-        } else {
-            dto.setLastMessageDetail(null);
-        }
-        return dto;
-    }
-
-    private ChatRoomListDto convertToChatRoomListDto(List<ChatRoomDetailDto> chatRoomDetails, boolean hasMore) {
-        ChatRoomListDto listDto = new ChatRoomListDto();
+        ChatRoomListDto chatRoomListDto = new ChatRoomListDto();
         ChatRoomListDto.MetaData metaData = new ChatRoomListDto.MetaData();
-        metaData.setCount((long) chatRoomDetails.size());
-        metaData.setHasMore(hasMore);
-        listDto.setMeta(metaData);
-        listDto.setData(chatRoomDetails);
-        return listDto;
-    }
+        metaData.setCount(chatRoomDtos.size());
+        metaData.setHasMore(!chatRoomPage.isLast());
+        chatRoomListDto.setMeta(metaData);
+        chatRoomListDto.setData(chatRoomDtos);
 
-    private static PostDetailDto convertToPostDetailDto(Post post, String email) {
-        PostDetailDto postDetailDto = new PostDetailDto();
-        postDetailDto.setId(post.getId());
-        postDetailDto.setIsFromSchool(post.isFromSchool());
-        postDetailDto.setDepart(post.getDepart());
-        postDetailDto.setArrive(post.getArrive());
-        postDetailDto.setDepartTime(post.getDepartTime().toString());
-        postDetailDto.setCost(post.getCost());
-        postDetailDto.setMaxMember(post.getMaxMember());
-        postDetailDto.setNowMember(post.getNowMember());
-        postDetailDto.setChatRoomId(post.getChatRoom().getId());
-
-        boolean isAuthor = post.getMemberPosts().stream()
-                .anyMatch(mp -> mp.getMember().getEmail().equals(email) && mp.getIsAuthor());
-        postDetailDto.setIsAuthor(isAuthor);
-
-        return postDetailDto;
+        return chatRoomListDto;
     }
 }
