@@ -1,5 +1,5 @@
 package com.backend.kiri.domain;
 
 public enum MessageType {
-    ENTER, COMMON
+    ENTER,COMMON,LEAVE
 }

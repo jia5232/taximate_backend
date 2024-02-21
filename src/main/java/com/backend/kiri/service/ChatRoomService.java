@@ -98,6 +98,19 @@ public class ChatRoomService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("채팅방의 멤버가 아닙니다."));
 
+        // 퇴장 알림 메시지
+        Message message = new Message();
+        message.setType(MessageType.LEAVE);
+        message.setSender(member);
+        message.setChatRoom(chatRoom);
+        message.setContent(member.getNickname() + "님이 채팅방을 나가셨습니다.");
+        message.setCreatedTime(LocalDateTime.now());
+        messageRepository.save(message);
+
+        MessageResponseDto messageResponseDto = convertToMessageResponseDto(message);
+
+        messagingTemplate.convertAndSend("/sub/chatroom/" + chatRoom.getId(), messageResponseDto);
+
         Post post = memberPost.getPost();
         post.removeMember(member);
         post.getMemberPosts().remove(memberPost);
