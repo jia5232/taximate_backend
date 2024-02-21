@@ -3,6 +3,7 @@ package com.backend.kiri.service;
 import com.backend.kiri.domain.ChatRoom;
 import com.backend.kiri.domain.Member;
 import com.backend.kiri.domain.Message;
+import com.backend.kiri.domain.MessageType;
 import com.backend.kiri.exception.NotFoundChatRoomException;
 import com.backend.kiri.exception.NotFoundMemberException;
 import com.backend.kiri.repository.ChatRoomRepository;
@@ -47,6 +48,7 @@ public class ChatService {
 
         Message message = new Message();
         message.setSender(sender);
+        message.setType(MessageType.COMMON);
         message.setChatRoom(chatRoom);
         message.setContent(messageRequestDto.getContent());
         message.setCreatedTime(LocalDateTime.now());
@@ -61,6 +63,7 @@ public class ChatService {
     private static MessageResponseDto convertToMessageResponseDto(Message message) {
         MessageResponseDto messageResponseDto = new MessageResponseDto();
         messageResponseDto.setId(message.getId());
+        messageResponseDto.setType(message.getType().toString());
         messageResponseDto.setContent(message.getContent());
         messageResponseDto.setNickname(message.getSender().getNickname());
         messageResponseDto.setCreatedTime(message.getCreatedTime());

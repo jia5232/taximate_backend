@@ -53,4 +53,6 @@ public class ChatRoomController {
         ChatRoomListDto chatRoomListDto = chatRoomService.getChatRoomsForMemberWithLastMessage(lastPostId, pageSize, accessToken);
         return ResponseEntity.ok(chatRoomListDto);
     }
+
+
 }

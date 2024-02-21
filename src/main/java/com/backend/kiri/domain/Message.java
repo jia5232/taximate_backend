@@ -13,6 +13,9 @@ public class Message {
     @Column(name = "message_id")
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    private MessageType type;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member sender;

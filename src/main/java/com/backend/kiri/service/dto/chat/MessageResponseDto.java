@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Setter
 public class MessageResponseDto {
     private Long id;
+    private String type;
     private String content;
     private String nickname;
     private LocalDateTime createdTime;

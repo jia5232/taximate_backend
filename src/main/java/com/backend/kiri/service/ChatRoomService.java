@@ -9,15 +9,20 @@ import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.repository.*;
 import com.backend.kiri.service.dto.chat.ChatRoomDto;
 import com.backend.kiri.service.dto.chat.ChatRoomListDto;
+import com.backend.kiri.service.dto.chat.MessageResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -30,6 +35,7 @@ public class ChatRoomService {
     private final PostRepository postRepository;
     private final MemberPostRepository memberPostRepository;
     private final JWTUtil jwtUtil;
+    private final SimpMessagingTemplate messagingTemplate;
 
     //채팅방 참여 여부 확인
     public boolean isMemberJoinedChatRoom(Long postId, String accessToken) {
@@ -52,17 +58,28 @@ public class ChatRoomService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NotFoundPostException("Not Found Post"));
 
-        if (post.getChatRoom() == null) {
-            throw new IllegalStateException("채팅방이 없습니다.");
-        }
+        ChatRoom chatRoom = chatRoomRepository.findByPostId(postId)
+                .orElseThrow(() -> new NotFoundChatRoomException("Not Found ChatRoom"));
 
         if(post.getNowMember() >= post.getMaxMember()){
             throw new ChatRoomFullException("인원 초과입니다.");
         }
-
         post.addMember(member, false);
         post.setNowMember(post.getNowMember() + 1); // 현재 인원수 증가
-        //트랜잭션 커밋 시, 여기서 변경 감지가 일어나 변경된 사항이 데이터베이스에 반영됨.
+        // 트랜잭션 커밋 시, 여기서 변경 감지가 일어나 변경된 사항이 데이터베이스에 반영됨.
+
+        // 입장 알림 메시지
+        Message message = new Message();
+        message.setType(MessageType.ENTER);
+        message.setSender(member);
+        message.setChatRoom(chatRoom);
+        message.setContent(member.getNickname() + "님이 채팅방에 입장하셨습니다.");
+        message.setCreatedTime(LocalDateTime.now());
+        messageRepository.save(message);
+
+        MessageResponseDto messageResponseDto = convertToMessageResponseDto(message);
+
+        messagingTemplate.convertAndSend("/sub/chatroom/" + chatRoom.getId(), messageResponseDto);
 
         return post.getChatRoom().getId();
     }
@@ -128,5 +145,15 @@ public class ChatRoomService {
         chatRoomListDto.setData(chatRoomDtos);
 
         return chatRoomListDto;
+    }
+
+    private static MessageResponseDto convertToMessageResponseDto(Message message) {
+        MessageResponseDto messageResponseDto = new MessageResponseDto();
+        messageResponseDto.setId(message.getId());
+        messageResponseDto.setType(message.getType().toString());
+        messageResponseDto.setContent(message.getContent());
+        messageResponseDto.setNickname(message.getSender().getNickname());
+        messageResponseDto.setCreatedTime(message.getCreatedTime());
+        return messageResponseDto;
     }
 }
