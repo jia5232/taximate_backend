@@ -124,6 +124,22 @@ public class ChatRoomService {
         return chatRoom.getId();
     }
 
+    // 해당 채팅방의 아직 안읽은 메시지 보여주는 기능!
+    // 사용자가 채팅방에 입장할 때, 나갈 때 해당 사용자의 MemberPost의 lastReadAt값을 현재 시간으로 설정.
+    public void updateLastReadAt(Long chatRoomId, String accessToken) {
+        String email = jwtUtil.getUsername(accessToken);
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundMemberException("멤버를 찾을 수 없습니다."));
+
+        MemberPost memberPost = member.getMemberPosts().stream()
+                .filter(mp -> mp.getPost().getChatRoom().getId().equals(chatRoomId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("현재 채팅방의 멤버가 아닙니다."));
+
+        memberPost.setLastReadAt(LocalDateTime.now());
+        memberPostRepository.save(memberPost); // 변경사항을 저장
+    }
+
     @Transactional(readOnly = true)
     public ChatRoomListDto getChatRoomsForMemberWithLastMessage(Long lastPostId, int pageSize, String accessToken) {
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by("id").ascending());

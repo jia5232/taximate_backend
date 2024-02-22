@@ -24,12 +24,8 @@ public class ChatController {
     // 이전의 채팅 내역 조회 -> 채팅방에 입장할 때마다 이 api가 호출된다.
     @GetMapping("/history/{chatRoomId}")
     @ResponseBody
-    public ResponseEntity<List<MessageResponseDto>> getChatHistory(
-            @PathVariable Long chatRoomId,
-            @RequestHeader("Authorization") String authorization
-            ) {
-        String accessToken = authorization.split(" ")[1];
-        List<MessageResponseDto> chatHistory = chatService.getChatHistory(chatRoomId, accessToken);
+    public ResponseEntity<List<MessageResponseDto>> getChatHistory(@PathVariable Long chatRoomId) {
+        List<MessageResponseDto> chatHistory = chatService.getChatHistory(chatRoomId);
         return ResponseEntity.ok(chatHistory);
     }
 

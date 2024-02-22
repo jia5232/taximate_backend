@@ -42,6 +42,16 @@ public class ChatRoomController {
         return ResponseEntity.ok(id);
     }
 
+    // 해당 채팅방에서 마지막에 존재한 시간을 업데이트해주는 api
+    // 사용자가 채팅방에 입장할 때, 나갈 때 해당 사용자의 MemberPost의 lastReadAt값을 현재 시간으로 설정.
+    @PutMapping("/update-last-read/{chatRoomId}")
+    public ResponseEntity<Void> updateLastRead(@PathVariable Long chatRoomId,
+                                               @RequestHeader("Authorization") String authorization) {
+        String accessToken = authorization.split(" ")[1];
+        chatRoomService.updateLastReadAt(chatRoomId, accessToken);
+        return ResponseEntity.ok().build(); // 200 OK 응답을 반환
+    }
+
     // 사용자가 포함된 모든 채팅방을 조회하는 api
     @GetMapping("/my")
     public ResponseEntity<ChatRoomListDto> getChatRoomsForMember(

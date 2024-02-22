@@ -26,26 +26,11 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final MemberRepository memberRepository;
-    private final MemberPostRepository memberPostRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final JWTUtil jwtUtil;
 
     // 채팅 내역 조회
-    public List<MessageResponseDto> getChatHistory(Long chatRoomId, String accessToken) {
-        // 안읽은 메시지 보여주는 기능!
-        // 사용자가 채팅방에 입장하면 해당 사용자의 MemberPost의 lastReadAt값을 현재 시간으로 설정.
-        String email = jwtUtil.getUsername(accessToken);
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundMemberException("멤버를 찾을 수 없습니다."));
-
-        MemberPost memberPost = member.getMemberPosts().stream()
-                .filter(mp -> mp.getPost().getChatRoom().getId().equals(chatRoomId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("현재 채팅방의 멤버가 아닙니다."));
-
-        memberPost.setLastReadAt(LocalDateTime.now());
-        memberPostRepository.save(memberPost); //변경사항을 저장!
-
+    public List<MessageResponseDto> getChatHistory(Long chatRoomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new NotFoundChatRoomException("채팅방을 찾을 수 없습니다."));
 
