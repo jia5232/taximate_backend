@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Getter @Setter
 public class ChatRoomDto {
     private Long chatRoomId;
+    private int unreadMessageCount;
     private String depart;
     private String arrive;
     private LocalDateTime departTime;

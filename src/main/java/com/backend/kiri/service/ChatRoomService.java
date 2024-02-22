@@ -132,11 +132,18 @@ public class ChatRoomService {
         Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("NotFoundMember"));
 
         Page<ChatRoom> chatRoomPage = chatRoomRepository.findChatRoomsByMemberAfterLastId(member.getId(), lastPostId, pageable);
+
         List<ChatRoomDto> chatRoomDtos = chatRoomPage.getContent().stream()
                 .map(chatRoom -> {
                     Post post = chatRoom.getPost();
+                    MemberPost memberPost = memberPostRepository.findByMemberAndPost(member, post)
+                            .orElseThrow(() -> new IllegalStateException("Member, Post에 대한 MemberPost를 찾을 수 없습니다."));
+
+                    int unreadMessageCount = messageRepository.countByChatRoomAndTypeAndCreatedTimeAfter(chatRoom, MessageType.COMMON, memberPost.getLastReadAt());
+
                     ChatRoomDto chatRoomDto = new ChatRoomDto();
                     chatRoomDto.setChatRoomId(chatRoom.getId());
+                    chatRoomDto.setUnreadMessageCount(unreadMessageCount);
                     chatRoomDto.setDepart(post.getDepart());
                     chatRoomDto.setArrive(post.getArrive());
                     chatRoomDto.setDepartTime(post.getDepartTime());

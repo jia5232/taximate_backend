@@ -38,7 +38,7 @@ public class Post {
     }
 
     public void addMember(Member member, boolean isAuthor){
-        MemberPost memberPost = new MemberPost(this, member, isAuthor);
+        MemberPost memberPost = new MemberPost(this, member, isAuthor, LocalDateTime.now());
         memberPosts.add(memberPost);
         member.getMemberPosts().add(memberPost);
     }
