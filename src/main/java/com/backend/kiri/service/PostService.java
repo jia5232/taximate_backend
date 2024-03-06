@@ -15,6 +15,8 @@ import com.backend.kiri.service.dto.post.PostDetailDto;
 import com.backend.kiri.service.dto.post.PostFormDto;
 import com.backend.kiri.service.dto.post.PostListDto;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -139,6 +141,10 @@ public class PostService {
     public PostListDto getFilteredPosts(Pageable pageable, Long lastPostId, Boolean isFromSchool, String searchKeyword, String accessToken){
         String email = jwtUtil.getUsername(accessToken);
 
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
+
+
         Specification<Post> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -155,6 +161,18 @@ public class PostService {
                 Predicate arrivePredicate = criteriaBuilder.like(root.get("arrive"), "%" + searchKeyword + "%");
                 predicates.add(criteriaBuilder.or(departPredicate, arrivePredicate));
             }
+
+            // MemberPost와 Member로 조인하여 대학교 이름으로 필터링
+            Subquery<MemberPost> memberPostSubquery = query.subquery(MemberPost.class);
+            Root<MemberPost> memberPostRoot = memberPostSubquery.from(MemberPost.class);
+            Join<MemberPost, Member> memberJoin = memberPostRoot.join("member");
+            memberPostSubquery.select(memberPostRoot);
+            memberPostSubquery.where(
+                    criteriaBuilder.equal(memberJoin.get("univName"), member.getUnivName()),
+                    criteriaBuilder.equal(memberPostRoot.get("post"), root) // MemberPost로 Post를 찾아서 비교
+            );
+
+            predicates.add(criteriaBuilder.exists(memberPostSubquery));
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };

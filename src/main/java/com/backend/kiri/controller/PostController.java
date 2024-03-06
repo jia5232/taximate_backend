@@ -60,7 +60,7 @@ public class PostController {
     @GetMapping("/posts/myposts")
     public ResponseEntity<PostListDto> getMyPosts(
             @RequestParam(required = false, defaultValue = "0") Long lastPostId,
-            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(defaultValue = "10") int pageSize,
             @RequestHeader("Authorization") String authorization
     ) {
         String accessToken = authorization.split(" ")[1];
