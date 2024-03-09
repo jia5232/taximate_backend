@@ -1,8 +1,8 @@
 package com.backend.kiri.service;
 
 import com.backend.kiri.domain.*;
-import com.backend.kiri.exception.NotFoundChatRoomException;
-import com.backend.kiri.exception.NotFoundMemberException;
+import com.backend.kiri.exception.exceptions.NotFoundChatRoomException;
+import com.backend.kiri.exception.exceptions.NotFoundMemberException;
 import com.backend.kiri.repository.ChatRoomRepository;
 import com.backend.kiri.repository.MemberRepository;
 import com.backend.kiri.repository.MessageRepository;

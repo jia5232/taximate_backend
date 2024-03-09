@@ -2,8 +2,8 @@ package com.backend.kiri.service;
 
 import com.backend.kiri.domain.Member;
 import com.backend.kiri.domain.security.RefreshToken;
-import com.backend.kiri.exception.NotFoundMemberException;
-import com.backend.kiri.exception.NotFoundRefreshTokenException;
+import com.backend.kiri.exception.exceptions.NotFoundMemberException;
+import com.backend.kiri.exception.exceptions.NotFoundRefreshTokenException;
 import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.repository.security.RefreshTokenRepository;
 import com.backend.kiri.service.dto.member.JoinDto;

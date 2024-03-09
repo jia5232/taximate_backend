@@ -4,7 +4,7 @@ import com.backend.kiri.domain.ChatRoom;
 import com.backend.kiri.domain.Member;
 import com.backend.kiri.domain.MemberPost;
 import com.backend.kiri.domain.Post;
-import com.backend.kiri.exception.*;
+import com.backend.kiri.exception.exceptions.*;
 import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.repository.MemberRepository;
 import com.backend.kiri.repository.PostRepository;
@@ -30,7 +30,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor

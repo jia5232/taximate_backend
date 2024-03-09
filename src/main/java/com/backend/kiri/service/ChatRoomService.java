@@ -1,10 +1,10 @@
 package com.backend.kiri.service;
 
 import com.backend.kiri.domain.*;
-import com.backend.kiri.exception.ChatRoomFullException;
-import com.backend.kiri.exception.NotFoundChatRoomException;
-import com.backend.kiri.exception.NotFoundMemberException;
-import com.backend.kiri.exception.NotFoundPostException;
+import com.backend.kiri.exception.exceptions.ChatRoomFullException;
+import com.backend.kiri.exception.exceptions.NotFoundChatRoomException;
+import com.backend.kiri.exception.exceptions.NotFoundMemberException;
+import com.backend.kiri.exception.exceptions.NotFoundPostException;
 import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.repository.*;
 import com.backend.kiri.service.dto.chat.ChatRoomDto;
@@ -20,9 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor

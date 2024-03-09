@@ -1,15 +1,13 @@
 package com.backend.kiri.security;
 
 import com.backend.kiri.domain.Member;
-import com.backend.kiri.exception.NotFoundMemberException;
+import com.backend.kiri.exception.exceptions.NotFoundMemberException;
 import com.backend.kiri.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 // 로그인 과정에서 스프링 시큐리티 검증을 위한 UserDetails를 만들어 AuthenticationManager에 넘겨주기 위함.
 @Service
