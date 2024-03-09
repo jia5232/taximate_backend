@@ -67,6 +67,7 @@ public class SecurityConfig {
                         "/email",
                         "/nicknameExists",
                         "/ws-stomp/**",
+                        "/error",
                         "/swagger-ui/**",
                         "/v3/api-docs/**", // OpenAPI 문서
                         "/swagger-ui.html",

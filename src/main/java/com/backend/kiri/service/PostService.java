@@ -4,10 +4,7 @@ import com.backend.kiri.domain.ChatRoom;
 import com.backend.kiri.domain.Member;
 import com.backend.kiri.domain.MemberPost;
 import com.backend.kiri.domain.Post;
-import com.backend.kiri.exception.NotFoundChatRoomException;
-import com.backend.kiri.exception.NotFoundMemberException;
-import com.backend.kiri.exception.NotFoundPostException;
-import com.backend.kiri.exception.UnauthorizedAccessException;
+import com.backend.kiri.exception.*;
 import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.repository.MemberRepository;
 import com.backend.kiri.repository.PostRepository;
@@ -141,7 +138,7 @@ public class PostService {
                 .count();
 
         if (participantsCount > 0) {
-            throw new IllegalStateException("참여자가 있어 삭제가 불가합니다.");
+            throw new NotEmptyPostException("참여자가 있어 삭제가 불가합니다.");
         }
 
         postRepository.delete(post);
