@@ -125,17 +125,26 @@ public class PostService {
 
     public void deletePost(Long postId, String accessToken){
         String email = jwtUtil.getUsername(accessToken);
-        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("PostService.deletePost: NotFoundMember"));
-        Post post = postRepository.findById(postId).orElseThrow(() -> new NotFoundPostException("PostService.deletePost: NotFoundPost"));
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new NotFoundPostException("No tFound Post"));
 
         boolean isAuthor = post.getMemberPosts().stream()
                 .anyMatch(memberPost -> memberPost.getMember().equals(member) && Boolean.TRUE.equals(memberPost.getIsAuthor()));
 
-        if(isAuthor){
-            postRepository.delete(post);
-        } else{
-            throw new UnauthorizedAccessException("PostService.deletePost: UnauthorizedAccessException");
+        if(!isAuthor){
+            throw new UnauthorizedAccessException("글을 삭제할 수 있는 권한이 없습니다.");
         }
+
+        // 작성자 외의 다른 참여자가 없는지 확인
+        long participantsCount = post.getMemberPosts().stream()
+                .filter(memberPost -> !memberPost.getMember().equals(member))
+                .count();
+
+        if (participantsCount > 0) {
+            throw new IllegalStateException("참여자가 있어 삭제가 불가합니다.");
+        }
+
+        postRepository.delete(post);
     }
 
     public PostListDto getFilteredPosts(Pageable pageable, Long lastPostId, Boolean isFromSchool, String searchKeyword, String accessToken){
