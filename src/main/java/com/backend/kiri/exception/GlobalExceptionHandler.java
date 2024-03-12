@@ -13,7 +13,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler
     public ErrorResult exHandle(Exception e) {
-        return new ErrorResult("EX","서버 오류가 발생했습니다.");
+        return new ErrorResult("EX","알 수 없는 오류가 발생했습니다.");
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

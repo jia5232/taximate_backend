@@ -15,7 +15,9 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -153,6 +155,9 @@ public class PostService {
         Specification<Post> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            // 출발 시간이 현재보다 지난 게시물은 필터링
+            predicates.add(criteriaBuilder.greaterThan(root.get("departTime"), LocalDateTime.now()));
+
             if(lastPostId != null){
                 predicates.add(criteriaBuilder.greaterThan(root.get("id"), lastPostId));
             }
@@ -181,6 +186,9 @@ public class PostService {
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+
+        // 출발 시간이 임박한 순으로 정렬
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.ASC, "departTime"));
 
         Page<Post> page = postRepository.findAll(spec, pageable);
         List<Post> posts = page.getContent();
