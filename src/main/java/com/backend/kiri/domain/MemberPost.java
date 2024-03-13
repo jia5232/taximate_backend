@@ -24,7 +24,6 @@ public class MemberPost {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
-    @Fetch(FetchMode.JOIN)
     private Post post;
 
     private Boolean isAuthor;

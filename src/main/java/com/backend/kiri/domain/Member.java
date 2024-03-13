@@ -20,6 +20,5 @@ public class Member {
     private String password;
     private String univName;
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.JOIN)
     private List<MemberPost> memberPosts = new ArrayList<>();
 }

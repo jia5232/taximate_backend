@@ -268,6 +268,7 @@ public class PostService {
 
         boolean isAuthor = findPost.getMemberPosts().stream()
                 .anyMatch(mp -> mp.getMember().getEmail().equals(email) && Boolean.TRUE.equals(mp.getIsAuthor()));
+
         postDetailDto.setIsAuthor(isAuthor);
 
         return postDetailDto;
