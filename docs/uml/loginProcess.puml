@@ -10,10 +10,8 @@ database "MySQL\nDatabase" as database
 user -> frontend : Enters username\nand password
 frontend -> backend : Login request\n(username, password)
 alt Valid credentials
-    backend -> database : Verify user\ncredentials
-    database -> backend : Credentials valid
+    backend -> backend : Verify user\ncredentials
     backend -> database : Store refreshToken
-    database -> backend : RefreshToken stored
     backend -> frontend : accessToken,\nrefreshToken
 else Invalid credentials
     backend -> frontend : Error response
