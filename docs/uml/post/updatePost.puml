@@ -1,0 +1,17 @@
+@startuml
+!theme plain
+
+actor User as user
+participant "Flutter\nFrontend" as frontend
+participant "Spring Boot\nBackend" as backend
+database "MySQL\nDatabase" as database
+
+== Update Post ==
+user -> frontend : Submit updated post form
+frontend -> backend : PUT /posts/{postId}\n(PostFormDto, Authorization)
+backend -> backend : Parse accessToken
+backend -> database : Find member by email & post by postId
+backend -> backend : Update Post details
+backend -> database : Save updated Post
+backend -> frontend : Respond with updated Post ID
+@enduml
