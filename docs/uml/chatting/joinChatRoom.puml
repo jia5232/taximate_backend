@@ -1,0 +1,18 @@
+@startuml
+!theme plain
+
+actor User as user
+participant "Flutter\nFrontend" as frontend
+participant "Spring Boot\nBackend" as backend
+database "MySQL\nDatabase" as database
+
+== Join Chat Room ==
+user -> frontend : Clicks to join chat room
+frontend -> backend : POST /chatrooms/join/{postId}\n(Authorization)
+backend -> backend : Parse accessToken
+backend -> database : Find Member and ChatRoom by postId
+backend -> backend : Add Member to ChatRoom
+backend -> database : Update ChatRoom members
+backend -> backend : Broadcast entry message
+backend -> frontend : Return ChatRoom ID
+@enduml
