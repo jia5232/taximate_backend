@@ -1,0 +1,15 @@
+@startuml
+!theme plain
+
+actor User as user
+participant "Flutter\nFrontend" as frontend
+participant "Spring Boot\nBackend" as backend
+database "MySQL\nDatabase" as database
+
+== Send Message ==
+user -> frontend : Types and sends message
+frontend -> backend : MessageMapping /chat/message\n(MessageRequestDto)
+backend -> backend : Authenticate and identify Member
+backend -> database : Save new message
+backend -> backend : Broadcast message to ChatRoom
+@enduml
