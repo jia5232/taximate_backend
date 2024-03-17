@@ -1,0 +1,18 @@
+@startuml
+!theme plain
+
+actor User as user
+participant "Flutter\nFrontend" as frontend
+participant "Spring Boot\nBackend" as backend
+database "MySQL\nDatabase" as database
+
+== Create Post ==
+user -> frontend : Submit post form
+frontend -> backend : POST /posts/create\n(PostFormDto, Authorization)
+backend -> backend : Parse accessToken
+backend -> database : Find member by email
+backend -> backend : Create new Post\n& associate with Member
+backend -> database : Save new Post
+database -> backend : Return Post ID
+backend -> frontend : Respond with Post ID
+@enduml
