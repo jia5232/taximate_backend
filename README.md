@@ -14,6 +14,7 @@
 ## 백엔드 개발 환경
 - Java 17
 - Springboot 3.2.1
+- JPA (Hibernate 6.4.1)
 - Mysql 8.3.0
 
 ## 도메인 다이어그램
