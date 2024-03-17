@@ -1,0 +1,14 @@
+@startuml
+!theme plain
+
+actor User as user
+participant "Flutter\nFrontend" as frontend
+participant "Spring Boot\nBackend" as backend
+database "MySQL\nDatabase" as database
+
+== Get Chat History ==
+user -> frontend : Requests chat history
+frontend -> backend : GET /history/{chatRoomId}\n(lastMessageId, pageSize)
+backend -> database : Query for messages in ChatRoom
+backend -> frontend : Respond with MessageListDto
+@enduml
