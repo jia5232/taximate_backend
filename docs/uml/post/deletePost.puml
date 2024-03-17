@@ -1,0 +1,20 @@
+@startuml
+!theme plain
+
+actor User as user
+participant "Flutter\nFrontend" as frontend
+participant "Spring Boot\nBackend" as backend
+database "MySQL\nDatabase" as database
+
+== Delete Post ==
+user -> frontend : Request to delete post
+frontend -> backend : DELETE /posts/{postId}\n(Authorization)
+backend -> backend : Parse accessToken
+backend -> database : Validate member is author & check for participants
+alt Author & No Participants
+    backend -> database : Delete Post
+    backend -> frontend : Respond with success
+else Not Author or Has Participants
+    backend -> frontend : Error response
+end
+@enduml
