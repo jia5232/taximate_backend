@@ -1,0 +1,16 @@
+@startuml
+!theme plain
+
+actor User as user
+participant "Flutter\nFrontend" as frontend
+participant "Spring Boot\nBackend" as backend
+database "MySQL\nDatabase" as database
+
+== Read Post Details ==
+user -> frontend : Request post details
+frontend -> backend : GET /posts/{postId}\n(Authorization)
+backend -> backend : Parse accessToken
+backend -> database : Find Post by postId
+backend -> backend : Convert Post to PostDetailDto
+backend -> frontend : Respond with PostDetailDto
+@enduml
