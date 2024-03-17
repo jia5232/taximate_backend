@@ -13,6 +13,5 @@ backend -> backend : Parse accessToken
 backend -> database : Find member by email
 backend -> backend : Create new Post\n& associate with Member
 backend -> database : Save new Post
-database -> backend : Return Post ID
 backend -> frontend : Respond with Post ID
 @enduml
