@@ -1,0 +1,18 @@
+@startuml
+!theme plain
+
+actor User as user
+participant "Flutter\nFrontend" as frontend
+participant "Spring Boot\nBackend" as backend
+database "MySQL\nDatabase" as database
+
+== Leave Chat Room ==
+user -> frontend : Clicks to leave chat room
+frontend -> backend : DELETE /chatrooms/leave/{chatRoomId}\n(Authorization)
+backend -> backend : Parse accessToken
+backend -> database : Find Member and ChatRoom
+backend -> backend : Remove Member from ChatRoom
+backend -> database : Update ChatRoom members and post
+backend -> backend : Broadcast exit message
+backend -> frontend : Confirm ChatRoom left
+@enduml
