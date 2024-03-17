@@ -1,0 +1,26 @@
+@startuml
+!theme plain
+
+participant "Flutter\nFrontend" as frontend
+participant "Spring Boot\nBackend" as backend
+database "MySQL\nDatabase" as database
+
+== Token Reissue ==
+frontend -> backend : Request with\naccessToken
+alt Token expired
+    backend -> frontend : 401 Unauthorized
+    frontend -> backend : Token reissue request\n(refreshToken)
+    backend -> database : search refreshToken
+    alt Token exist
+        backend -> backend : refreshToken validate
+        backend -> database : Remove old refreshToken
+        backend -> database : Store new refreshToken
+        backend -> frontend : New accessToken,\nrefreshToken
+    else Token doesn't exist
+        backend -> frontend : 401 Unauthorized
+    end
+else Valid Token
+    backend -> frontend : Proceed with request
+end
+
+@enduml
