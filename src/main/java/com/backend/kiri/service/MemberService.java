@@ -2,10 +2,11 @@ package com.backend.kiri.service;
 
 import com.backend.kiri.domain.Member;
 import com.backend.kiri.domain.security.RefreshToken;
-import com.backend.kiri.exception.exceptions.NotFoundMemberException;
-import com.backend.kiri.exception.exceptions.NotFoundRefreshTokenException;
+import com.backend.kiri.domain.university.University;
+import com.backend.kiri.exception.exceptions.*;
 import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.repository.security.RefreshTokenRepository;
+import com.backend.kiri.repository.university.UniversityRepository;
 import com.backend.kiri.service.dto.member.JoinDto;
 import com.backend.kiri.repository.MemberRepository;
 import com.backend.kiri.service.dto.member.MemberDto;
@@ -25,6 +26,7 @@ import java.util.Map;
 @Transactional
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final UniversityRepository universityRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JWTUtil jwtUtil;
@@ -35,23 +37,25 @@ public class MemberService {
 
     public Map<String, String> sendEmail(String email) {
         HashMap<String, String> map = new HashMap<>();
-        Boolean exists = memberRepository.existsByEmail(email);
 
         SimpleMailMessage message = new SimpleMailMessage();
         int authNumber;
 
-        if(exists){
-            map.put("exist", "이미 가입한 이메일입니다.");
-            return map;
-        } else{
-            SecureRandom secureRandom = new SecureRandom();
-            authNumber = 100000 + secureRandom.nextInt(900000);
-
-            message.setTo(email);
-
-            message.setSubject("끼리 회원가입을 위한 이메일 인증번호 메일입니다.");
-            message.setText("인증번호는 "+authNumber+"입니다. \n끼리와 함께 오늘도 안전한 등하교 되세요 :)");
+        if(!universityRepository.existsByEmailSuffix(getEmailSuffix(email))){
+            throw new NotFoundUniversityException("적절한 대학교 이메일이 아닙니다.");
         }
+
+        if(memberRepository.existsByEmail(email)){
+            throw new AlreadyExistMemberException("이미 가입된 회원입니다.");
+        }
+
+        SecureRandom secureRandom = new SecureRandom();
+        authNumber = 100000 + secureRandom.nextInt(900000);
+
+        message.setTo(email);
+
+        message.setSubject("끼리 회원가입을 위한 이메일 인증번호 메일입니다.");
+        message.setText("인증번호는 "+authNumber+"입니다. \n끼리와 함께 오늘도 안전한 등하교 되세요 :)");
 
         try{
             javaMailSender.send(message);
@@ -63,6 +67,10 @@ public class MemberService {
         return map;
     }
 
+    public String getEmailSuffix(String email) {
+        return email.substring(email.lastIndexOf("@") + 1);
+    }
+
     public boolean checkNicknameDuplicate(String nickname){
         return memberRepository.existsByNickname(nickname);
     }
@@ -71,12 +79,14 @@ public class MemberService {
         String email = joinDto.getEmail();
         String password = joinDto.getPassword();
         String nickname = joinDto.getNickname();
-        String univName = joinDto.getUnivName();
         Boolean isAccept = joinDto.getIsAccept();
         Boolean isEmailAuthenticated = joinDto.getIsEmailAuthenticated();
 
         Boolean isEmailExist = memberRepository.existsByEmail(email);
         Boolean isNicknameExist = memberRepository.existsByNickname(nickname);
+
+        University findUniversity = universityRepository.findByEmailSuffix(getEmailSuffix(email))
+                .orElseThrow(() -> new NotFoundUniversityException("적절한 대학교 이메일이 아닙니다."));
 
         if (isEmailExist) {
             // 이메일 중복 에러처리
@@ -95,8 +105,10 @@ public class MemberService {
             member.setEmail(email);
             member.setPassword(bCryptPasswordEncoder.encode(password));
             member.setNickname(nickname);
-            member.setUnivName(univName);
+            member.setUnivName(findUniversity.getName());
             memberRepository.save(member);
+        } else {
+            throw new NotEnoughInfoException("회원가입에 필요한 정보가 모두 입력되지 않았습니다.");
         }
 
     }

@@ -58,9 +58,27 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(NotFoundUniversityException.class)
+    public ResponseEntity<ErrorResult> notFoundUniversityExHandle(NotFoundUniversityException e){
+        ErrorResult errorResult = new ErrorResult("NOT FOUND TOKEN EX", e.getMessage());
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<ErrorResult> unauthorizedAccessExHandle(UnauthorizedAccessException e){
         ErrorResult errorResult = new ErrorResult("UNAUTHORIZED ACCESS EX", e.getMessage());
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AlreadyExistMemberException.class)
+    public ResponseEntity<ErrorResult> alreadyExistMemberExHandle(AlreadyExistMemberException e){
+        ErrorResult errorResult = new ErrorResult("ALREADY EXIST MEMBER EX", e.getMessage());
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NotEnoughInfoException.class)
+    public ResponseEntity<ErrorResult> notEnoughInfoExHandle(NotEnoughInfoException e){
+        ErrorResult errorResult = new ErrorResult("NOT ENOUGH INFO EX", e.getMessage());
         return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
     }
 }

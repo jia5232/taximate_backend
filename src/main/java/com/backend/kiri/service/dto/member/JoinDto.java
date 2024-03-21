@@ -15,8 +15,6 @@ public class JoinDto { //회원가입용 DTO
     private String password;
     @NotBlank
     private String nickname;
-    @NotBlank
-    private String univName;
     @NotNull
     private Boolean isAccept;
     @NotNull

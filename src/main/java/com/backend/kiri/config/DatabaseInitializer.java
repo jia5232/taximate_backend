@@ -18,6 +18,8 @@ public class DatabaseInitializer {
     @PostConstruct
     @Transactional
     public void populateUniversity() {
+        universityRepository.deleteAll();
+
         List<University> universities = Arrays.asList(
                 new University("가천길대학", "gachon.ac.kr"),
                 new University("가톨릭상지대학교", "csj.ac.kr"),
