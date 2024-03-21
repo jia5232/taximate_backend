@@ -79,25 +79,28 @@ public class MemberService {
         String email = joinDto.getEmail();
         String password = joinDto.getPassword();
         String nickname = joinDto.getNickname();
+        String univName = joinDto.getUnivName();
         Boolean isAccept = joinDto.getIsAccept();
         Boolean isEmailAuthenticated = joinDto.getIsEmailAuthenticated();
 
         Boolean isEmailExist = memberRepository.existsByEmail(email);
         Boolean isNicknameExist = memberRepository.existsByNickname(nickname);
 
-        University findUniversity = universityRepository.findByEmailSuffix(getEmailSuffix(email))
-                .orElseThrow(() -> new NotFoundUniversityException("적절한 대학교 이메일이 아닙니다."));
+        University findUniversityByName = universityRepository.findByName(univName)
+                .orElseThrow(() -> new NotFoundUniversityException("대학교를 찾을 수 없습니다."));
+
+        Boolean isEmailSuffixValid = findUniversityByName.getEmailSuffix().equals(getEmailSuffix(email));
+
+        if(!isEmailSuffixValid){
+            throw new NotEnoughInfoException("대학교와 이메일이 일치하지 않습니다. 올바른 학교 이메일을 입력하세요");
+        }
 
         if (isEmailExist) {
-            // 이메일 중복 에러처리
-            System.out.println("이메일 중복입니다");
-            return;
+            throw new AlreadyExistMemberException("이미 가입된 회원입니다.");
         }
 
         if (isNicknameExist) {
-            // 닉네임 중복 에러처리
-            System.out.println("닉네임 중복입니다");
-            return;
+            throw new AlreadyExistMemberException("중복된 닉네임입니다.");
         }
 
         if (isAccept && isEmailAuthenticated) {
@@ -105,7 +108,7 @@ public class MemberService {
             member.setEmail(email);
             member.setPassword(bCryptPasswordEncoder.encode(password));
             member.setNickname(nickname);
-            member.setUnivName(findUniversity.getName());
+            member.setUnivName(findUniversityByName.getName());
             memberRepository.save(member);
         } else {
             throw new NotEnoughInfoException("회원가입에 필요한 정보가 모두 입력되지 않았습니다.");

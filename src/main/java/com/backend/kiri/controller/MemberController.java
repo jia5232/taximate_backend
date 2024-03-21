@@ -31,7 +31,6 @@ public class MemberController {
 
     @PostMapping("/signup")
     public String signUp(@RequestBody JoinDto joinDto){
-        System.out.println(joinDto);
         memberService.joinProcess(joinDto);
         return "ok";
     }

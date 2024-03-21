@@ -64,6 +64,7 @@ public class SecurityConfig {
                         "/",
                         "/signup",
                         "/token",
+                        "/universities/search",
                         "/email",
                         "/nicknameExists",
                         "/ws-stomp/**",
