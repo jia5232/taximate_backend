@@ -64,6 +64,7 @@ public class SecurityConfig {
                         "/",
                         "/signup",
                         "/token",
+                        "/universities/search",
                         "/email",
                         "/nicknameExists",
                         "/ws-stomp/**",
@@ -102,8 +103,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
 //        configuration.addAllowedOrigin("http://localhost:64700");
+//        configuration.setAllowedOrigins(Arrays.asList("http://localhost:64700", "https://jxy.me", "http://localhost:8080/swagger-ui/index.html"));
 
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:64700", "https://jxy.me", "http://localhost:8080/swagger-ui/index.html"));
+        //앱의 경우 별도로 origin을 제한하는 cors 설정을 할 필요가 없다.
+        configuration.setAllowedOrigins(Arrays.asList("*"));
 
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
