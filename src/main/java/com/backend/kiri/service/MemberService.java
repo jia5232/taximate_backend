@@ -32,8 +32,8 @@ public class MemberService {
     private final JWTUtil jwtUtil;
     private final JavaMailSender javaMailSender;
 
-    private static final long ACCESS_TOKEN_TIME = 1000 * 60 * 30; // 30 분 1000ms(=1s) *60=(1min)*30 =(30min) -> 1000 * 60 * 30L
-    private static final long REFRESH_TOKEN_TIME = 1000 * 60 * 60;
+    private static final long ACCESS_TOKEN_TIME = 1000 * 60 * 60 * 1; // 1시간
+    private static final long REFRESH_TOKEN_TIME = 1000 * 60 * 60 * 24 * 14; // 2주
 
     public Map<String, String> sendEmail(String email) {
         HashMap<String, String> map = new HashMap<>();
