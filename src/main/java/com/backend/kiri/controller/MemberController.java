@@ -24,8 +24,8 @@ public class MemberController {
     }
 
     @GetMapping("/nicknameExists")
-    public ResponseEntity<Boolean> checkNicknameDuplicate(@RequestBody NicknameDto nicknameDto){
-        return ResponseEntity.ok(memberService.checkNicknameDuplicate(nicknameDto.getNickname()));
+    public ResponseEntity<Boolean> checkNicknameDuplicate(@RequestParam String nickname){
+        return ResponseEntity.ok(memberService.checkNicknameDuplicate(nickname));
     }
 
 
