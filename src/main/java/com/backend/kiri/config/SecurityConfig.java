@@ -67,6 +67,7 @@ public class SecurityConfig {
                         "/universities/search",
                         "/email",
                         "/nicknameExists",
+                        "/validateEmailSuffix",
                         "/ws-stomp/**",
                         "/error",
                         "/swagger-ui/**",
