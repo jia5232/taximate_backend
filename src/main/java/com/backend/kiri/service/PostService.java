@@ -69,7 +69,6 @@ public class PostService {
         ChatRoom chatRoom = new ChatRoom();
         post.setChatRoom(chatRoom); // post의 연관관계 메서드 사용
 
-
         // MemberPost생성을 위한 작업
         // 글 작성자는 글을 작성할 때 이걸 통해서 joinChatRoom() 처리가 됨!
         post.addMember(member, true);
@@ -81,14 +80,14 @@ public class PostService {
 
     public PostDetailDto detailPost(Long postId, String accessToken){
         String email = jwtUtil.getUsername(accessToken);
-        Post post = postRepository.findById(postId).orElseThrow(() -> new NotFoundPostException("PostService.detailPost: NotFoundPost"));
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId).orElseThrow(() -> new NotFoundPostException("PostService.detailPost: NotFoundPost"));
         return convertToDetailDto(post, email);
     }
 
     public Long updatePost(Long postId, PostFormDto postFormDto, String accessToken) {
         String email = jwtUtil.getUsername(accessToken);
         Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("PostService.updatePost: NotFoundMember"));
-        Post post = postRepository.findById(postId).orElseThrow(() -> new NotFoundPostException("PostService.updatePost: NotFoundPost"));
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId).orElseThrow(() -> new NotFoundPostException("PostService.updatePost: NotFoundPost"));
 
         boolean isFromSchool = postFormDto.getIsFromSchool();
         post.setFromSchool(isFromSchool);
@@ -124,7 +123,7 @@ public class PostService {
     public void deletePost(Long postId, String accessToken){
         String email = jwtUtil.getUsername(accessToken);
         Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
-        Post post = postRepository.findById(postId).orElseThrow(() -> new NotFoundPostException("No tFound Post"));
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId).orElseThrow(() -> new NotFoundPostException("Not Found Post"));
 
         boolean isAuthor = post.getMemberPosts().stream()
                 .anyMatch(memberPost -> memberPost.getMember().equals(member) && Boolean.TRUE.equals(memberPost.getIsAuthor()));
@@ -142,7 +141,8 @@ public class PostService {
             throw new NotEmptyPostException("참여자가 있어 삭제가 불가합니다.");
         }
 
-        postRepository.delete(post);
+        post.delete();  // 소프트 삭제 처리
+        postRepository.save(post);
     }
 
     public PostListDto getFilteredPosts(Pageable pageable, Long lastPostId, Boolean isFromSchool, String searchKeyword, String accessToken){
@@ -150,7 +150,6 @@ public class PostService {
 
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
-
 
         Specification<Post> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -184,6 +183,9 @@ public class PostService {
 
             predicates.add(criteriaBuilder.exists(memberPostSubquery));
 
+            // 소프트 삭제되지 않은 게시물만 필터링
+            predicates.add(criteriaBuilder.isFalse(root.get("isDeleted")));
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
@@ -202,7 +204,6 @@ public class PostService {
         PostListDto.MetaData metaData = new PostListDto.MetaData();
         metaData.setCount(postDetailDtos.size());
         metaData.setHasMore(!page.isLast());
-        //Page 객체가 제공하는 isLast() : 현재페이지가 마지막일 경우 true를 리턴. 따라서 hasMore는 !page.isLast()가 된다.
         postListDto.setMeta(metaData);
 
         return postListDto;
@@ -224,6 +225,9 @@ public class PostService {
             Join<Post, MemberPost> memberPostJoin = root.join("memberPosts");
             predicates.add(criteriaBuilder.equal(memberPostJoin.get("member").get("email"), email));
             predicates.add(criteriaBuilder.isTrue(memberPostJoin.get("isAuthor"))); // 작성자인 경우만 필터링
+
+            // 소프트 삭제되지 않은 게시물만 필터링
+            predicates.add(criteriaBuilder.isFalse(root.get("isDeleted")));
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
@@ -250,7 +254,7 @@ public class PostService {
 
     public PostDetailDto getPostInfoByChatRoomId(Long chatRoomId, String accessToken){
         String email = jwtUtil.getUsername(accessToken);
-        Post post = postRepository.findByChatRoom_Id(chatRoomId).orElseThrow(() -> new NotFoundChatRoomException("Not Found ChatRoom"));
+        Post post = postRepository.findByChatRoom_IdAndIsDeletedFalse(chatRoomId).orElseThrow(() -> new NotFoundChatRoomException("Not Found ChatRoom"));
         return convertToDetailDto(post, email);
     }
 
@@ -291,3 +295,4 @@ public class PostService {
         return postDetailDto;
     }
 }
+

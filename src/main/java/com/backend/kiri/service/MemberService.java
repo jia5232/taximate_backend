@@ -98,12 +98,24 @@ public class MemberService {
 
         Boolean isEmailSuffixValid = findUniversityByName.getEmailSuffix().equals(getEmailSuffix(email));
 
-        if(!isEmailSuffixValid){
+        if (!isEmailSuffixValid) {
             throw new NotEnoughInfoException("대학교와 이메일이 일치하지 않습니다. 올바른 학교 이메일을 입력하세요");
         }
 
         if (isEmailExist) {
-            throw new AlreadyExistMemberException("이미 가입된 회원입니다.");
+            Member existingMember = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("회원 정보를 찾을 수 없습니다."));
+            if (existingMember.getIsDeleted()) {
+                // Restore the account
+                existingMember.setIsDeleted(false);
+                existingMember.setNickname(nickname);
+                existingMember.setPassword(bCryptPasswordEncoder.encode(password));
+                existingMember.setUnivName(findUniversityByName.getName());
+                existingMember.setCancellationDate(null);
+                memberRepository.save(existingMember);
+                return;
+            } else {
+                throw new AlreadyExistMemberException("이미 가입된 회원입니다.");
+            }
         }
 
         if (isNicknameExist) {
@@ -120,7 +132,6 @@ public class MemberService {
         } else {
             throw new NotEnoughInfoException("회원가입에 필요한 정보가 모두 입력되지 않았습니다.");
         }
-
     }
 
     public Map<String, String> createNewTokens(String refreshToken) {
@@ -157,5 +168,14 @@ public class MemberService {
         memberDto.setUnivName(member.getUnivName());
 
         return memberDto;
+    }
+
+    public void deleteMember(String accessToken) {
+        String email = jwtUtil.getUsername(accessToken);
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
+
+        member.delete();  // 소프트 삭제 처리
+        memberRepository.save(member);
     }
 }

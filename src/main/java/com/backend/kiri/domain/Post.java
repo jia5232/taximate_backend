@@ -22,13 +22,14 @@ public class Post {
     private LocalDateTime departTime;
     private LocalDateTime createdTime;
     private Integer cost;
-    private Integer maxMember; //최대 인원수
-    private Integer nowMember; //현재 인원수
-
+    private Integer maxMember;
+    private Integer nowMember;
+    private Boolean isDeleted = false;  // 소프트 삭제 여부 추가
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 40)
     private List<MemberPost> memberPosts = new ArrayList<>();
+
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "chatRoom_id")
     private ChatRoom chatRoom;
@@ -53,5 +54,10 @@ public class Post {
                 memberPost.setMember(null);
             }
         }
+    }
+
+    // 글 삭제 처리 메서드
+    public void delete() {
+        this.isDeleted = true;
     }
 }
