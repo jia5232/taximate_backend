@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 // 로그인 과정에서 스프링 시큐리티 검증을 위한 UserDetails를 만들어 AuthenticationManager에 넘겨주기 위함.
+
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailService implements UserDetailsService {
@@ -18,6 +19,11 @@ public class CustomUserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Member userData = findByEmail(email);
+
+        if (userData.getIsDeleted()) {
+            throw new UsernameNotFoundException("탈퇴한 회원입니다. 재가입 해주세요 (" + email + ")");
+        }
+
         return new CustomUserDetails(userData);
     }
 
