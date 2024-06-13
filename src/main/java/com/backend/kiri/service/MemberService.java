@@ -10,6 +10,7 @@ import com.backend.kiri.repository.university.UniversityRepository;
 import com.backend.kiri.service.dto.member.JoinDto;
 import com.backend.kiri.repository.MemberRepository;
 import com.backend.kiri.service.dto.member.MemberDto;
+import com.backend.kiri.service.dto.member.signup.EmailSuffixDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -73,6 +74,12 @@ public class MemberService {
 
     public boolean checkNicknameDuplicate(String nickname){
         return memberRepository.existsByNickname(nickname);
+    }
+
+    public boolean validateEmailSuffix(EmailSuffixDto emailSuffixDto) {
+        University university = universityRepository.findByName(emailSuffixDto.getUnivName())
+                .orElseThrow(() -> new NotFoundUniversityException("대학교를 찾을 수 없습니다."));
+        return university.getEmailSuffix().equals(getEmailSuffix(emailSuffixDto.getEmail()));
     }
 
     public void joinProcess(JoinDto joinDto) {

@@ -4,6 +4,7 @@ import com.backend.kiri.service.dto.member.JoinDto;
 import com.backend.kiri.service.MemberService;
 import com.backend.kiri.service.dto.member.MemberDto;
 import com.backend.kiri.service.dto.member.signup.EmailDto;
+import com.backend.kiri.service.dto.member.signup.EmailSuffixDto;
 import com.backend.kiri.service.dto.member.signup.NicknameDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +25,14 @@ public class MemberController {
     }
 
     @GetMapping("/nicknameExists")
-    public ResponseEntity<Boolean> checkNicknameDuplicate(@RequestBody NicknameDto nicknameDto){
-        return ResponseEntity.ok(memberService.checkNicknameDuplicate(nicknameDto.getNickname()));
+    public ResponseEntity<Boolean> checkNicknameDuplicate(@RequestParam String nickname){
+        return ResponseEntity.ok(memberService.checkNicknameDuplicate(nickname));
     }
 
+    @PostMapping("/validateEmailSuffix")
+    public ResponseEntity<Boolean> validateEmailSuffix(@RequestBody EmailSuffixDto emailSuffixDto){
+        return ResponseEntity.ok(memberService.validateEmailSuffix(emailSuffixDto));
+    }
 
     @PostMapping("/signup")
     public String signUp(@RequestBody JoinDto joinDto){
