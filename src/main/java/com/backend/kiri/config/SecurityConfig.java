@@ -68,6 +68,8 @@ public class SecurityConfig {
                         "/email",
                         "/nicknameExists",
                         "/validateEmailSuffix",
+                        "/api/password/reset/request",
+                        "/api/password/reset/confirm",
                         "/ws-stomp/**",
                         "/error",
                         "/swagger-ui/**",

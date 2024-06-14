@@ -56,8 +56,8 @@ public class MemberService {
 
         message.setTo(email);
 
-        message.setSubject("끼리 회원가입을 위한 이메일 인증번호 메일입니다.");
-        message.setText("인증번호는 "+authNumber+"입니다. \n끼리와 함께 오늘도 안전한 등하교 되세요 :)");
+        message.setSubject("택시메이트 회원가입을 위한 이메일 인증번호 메일입니다.");
+        message.setText("인증번호는 "+authNumber+"입니다. \n택시메이트와 함께 오늘도 안전한 등하교 되세요 :)");
 
         try{
             javaMailSender.send(message);
