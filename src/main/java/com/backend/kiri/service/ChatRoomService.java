@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -140,6 +141,7 @@ public class ChatRoomService {
         memberPostRepository.save(memberPost); // 변경사항을 저장
     }
 
+
     @Transactional(readOnly = true)
     public ChatRoomListDto getChatRoomsForMemberWithLastMessage(Long lastPostId, int pageSize, String accessToken) {
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by("id").ascending());
@@ -149,18 +151,22 @@ public class ChatRoomService {
 
         Page<ChatRoom> chatRoomPage = chatRoomRepository.findChatRoomsByMemberAfterLastId(member.getId(), lastPostId, pageable);
 
-        List<ChatRoomDto> chatRoomDtos = chatRoomPage.getContent().stream()
-                .map(chatRoom -> {
-                    Post post = chatRoom.getPost();
-                    MemberPost memberPost = memberPostRepository.findByMemberAndPost(member, post)
-                            .orElseThrow(() -> new IllegalStateException("Member, Post에 대한 MemberPost를 찾을 수 없습니다."));
+        List<ChatRoomDto> chatRoomDtos = new ArrayList<>();
 
-                    int unreadMessageCount = messageRepository.countByChatRoomAndTypeAndCreatedTimeAfter(chatRoom, MessageType.COMMON, memberPost.getLastReadAt());
+        for (ChatRoom chatRoom : chatRoomPage) {
+            Post post = chatRoom.getPost();
+            MemberPost memberPost = memberPostRepository.findByMemberAndPost(member, post)
+                    .orElseThrow(() -> new IllegalStateException("Member, Post에 대한 MemberPost를 찾을 수 없습니다."));
 
-                    Message lastMessage = messageRepository.findFirstByChatRoomCustom(chatRoom, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
+            int unreadMessageCount = messageRepository.countByChatRoomAndTypeAndCreatedTimeAfter(chatRoom, MessageType.COMMON, memberPost.getLastReadAt());
 
-                    return ChatRoomMapper.toChatRoomDto(chatRoom, member, memberPost, lastMessage, unreadMessageCount);
-                }).collect(Collectors.toList());
+            Message lastMessage = messageRepository.findFirstByChatRoomOrderByCreatedTimeDesc(chatRoom, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
+
+            ChatRoomDto chatRoomDto = ChatRoomMapper.toChatRoomDto(chatRoom, member, memberPost, lastMessage, unreadMessageCount);
+            chatRoomDtos.add(chatRoomDto);
+        }
+
+        chatRoomDtos.sort(Comparator.comparing(ChatRoomDto::getMessageCreatedTime, Comparator.nullsLast(Comparator.reverseOrder())));
 
         ChatRoomListDto chatRoomListDto = new ChatRoomListDto();
         ChatRoomListDto.MetaData metaData = new ChatRoomListDto.MetaData();
