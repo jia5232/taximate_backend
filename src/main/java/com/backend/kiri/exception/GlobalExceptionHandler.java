@@ -81,4 +81,16 @@ public class GlobalExceptionHandler {
         ErrorResult errorResult = new ErrorResult("NOT ENOUGH INFO EX", e.getMessage());
         return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(InvalidAuthNumberException.class)
+    public ResponseEntity<ErrorResult> invalidAuthNumberExHandle(InvalidAuthNumberException e){
+        ErrorResult errorResult = new ErrorResult("INVALID AUTH NUMBER EX", e.getMessage());
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(IncorrectPasswordException.class)
+    public ResponseEntity<ErrorResult> incorrectPasswordExHandle(IncorrectPasswordException e){
+        ErrorResult errorResult = new ErrorResult("INCORRECT PASSWORD EX", e.getMessage());
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+    }
 }
