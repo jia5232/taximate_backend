@@ -30,8 +30,8 @@ public class PasswordResetService {
         int authNumber = 100000 + new SecureRandom().nextInt(900000);
 
         message.setTo(email);
-        message.setSubject("끼리 비밀번호 초기화 인증번호입니다.");
-        message.setText("인증번호는 " + authNumber + "입니다. \n끼리와 함께 오늘도 안전한 등하교 되세요 :)");
+        message.setSubject("택시메이트 비밀번호 초기화 인증번호입니다.");
+        message.setText("인증번호는 " + authNumber + "입니다. \n택시메이트와 함께 오늘도 안전한 등하교 되세요 :)");
 
         try {
             javaMailSender.send(message);
