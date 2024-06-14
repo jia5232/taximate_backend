@@ -9,6 +9,7 @@ import com.backend.kiri.jwt.JWTUtil;
 import com.backend.kiri.repository.*;
 import com.backend.kiri.service.dto.chat.ChatRoomDto;
 import com.backend.kiri.service.dto.chat.ChatRoomListDto;
+import com.backend.kiri.service.dto.chat.ChatRoomMapper;
 import com.backend.kiri.service.dto.chat.MessageResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -138,38 +141,32 @@ public class ChatRoomService {
         memberPostRepository.save(memberPost); // 변경사항을 저장
     }
 
+
     @Transactional(readOnly = true)
     public ChatRoomListDto getChatRoomsForMemberWithLastMessage(Long lastPostId, int pageSize, String accessToken) {
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by("id").ascending());
 
         String email = jwtUtil.getUsername(accessToken);
-        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("NotFoundMember"));
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
 
         Page<ChatRoom> chatRoomPage = chatRoomRepository.findChatRoomsByMemberAfterLastId(member.getId(), lastPostId, pageable);
 
-        List<ChatRoomDto> chatRoomDtos = chatRoomPage.getContent().stream()
-                .map(chatRoom -> {
-                    Post post = chatRoom.getPost();
-                    MemberPost memberPost = memberPostRepository.findByMemberAndPost(member, post)
-                            .orElseThrow(() -> new IllegalStateException("Member, Post에 대한 MemberPost를 찾을 수 없습니다."));
+        List<ChatRoomDto> chatRoomDtos = new ArrayList<>();
 
-                    int unreadMessageCount = messageRepository.countByChatRoomAndTypeAndCreatedTimeAfter(chatRoom, MessageType.COMMON, memberPost.getLastReadAt());
+        for (ChatRoom chatRoom : chatRoomPage) {
+            Post post = chatRoom.getPost();
+            MemberPost memberPost = memberPostRepository.findByMemberAndPost(member, post)
+                    .orElseThrow(() -> new IllegalStateException("Member, Post에 대한 MemberPost를 찾을 수 없습니다."));
 
-                    ChatRoomDto chatRoomDto = new ChatRoomDto();
-                    chatRoomDto.setChatRoomId(chatRoom.getId());
-                    chatRoomDto.setUnreadMessageCount(unreadMessageCount);
-                    chatRoomDto.setDepart(post.getDepart());
-                    chatRoomDto.setArrive(post.getArrive());
-                    chatRoomDto.setDepartTime(post.getDepartTime());
-                    chatRoomDto.setNowMember(post.getNowMember());
+            int unreadMessageCount = messageRepository.countByChatRoomAndTypeAndCreatedTimeAfter(chatRoom, MessageType.COMMON, memberPost.getLastReadAt());
 
-                    Message lastMessage = messageRepository.findFirstByChatRoomCustom(chatRoom, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
-                    if(lastMessage != null){
-                        chatRoomDto.setLastMessageContent(lastMessage.getContent());
-                        chatRoomDto.setMessageCreatedTime(lastMessage.getCreatedTime());
-                    }
-                    return chatRoomDto;
-                }).collect(Collectors.toList());
+            Message lastMessage = messageRepository.findFirstByChatRoomOrderByCreatedTimeDesc(chatRoom, PageRequest.of(0, 1)).stream().findFirst().orElse(null);
+
+            ChatRoomDto chatRoomDto = ChatRoomMapper.toChatRoomDto(chatRoom, member, memberPost, lastMessage, unreadMessageCount);
+            chatRoomDtos.add(chatRoomDto);
+        }
+
+        chatRoomDtos.sort(Comparator.comparing(ChatRoomDto::getMessageCreatedTime, Comparator.nullsLast(Comparator.reverseOrder())));
 
         ChatRoomListDto chatRoomListDto = new ChatRoomListDto();
         ChatRoomListDto.MetaData metaData = new ChatRoomListDto.MetaData();

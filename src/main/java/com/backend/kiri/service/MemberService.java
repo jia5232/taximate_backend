@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -90,38 +91,47 @@ public class MemberService {
         Boolean isAccept = joinDto.getIsAccept();
         Boolean isEmailAuthenticated = joinDto.getIsEmailAuthenticated();
 
-        Boolean isEmailExist = memberRepository.existsByEmail(email);
-        Boolean isNicknameExist = memberRepository.existsByNickname(nickname);
-
         University findUniversityByName = universityRepository.findByName(univName)
                 .orElseThrow(() -> new NotFoundUniversityException("대학교를 찾을 수 없습니다."));
 
         Boolean isEmailSuffixValid = findUniversityByName.getEmailSuffix().equals(getEmailSuffix(email));
-
-        if(!isEmailSuffixValid){
+        if (!isEmailSuffixValid) {
             throw new NotEnoughInfoException("대학교와 이메일이 일치하지 않습니다. 올바른 학교 이메일을 입력하세요");
         }
 
-        if (isEmailExist) {
-            throw new AlreadyExistMemberException("이미 가입된 회원입니다.");
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+        if (optionalMember.isPresent()) {
+            Member existingMember = optionalMember.get();
+            if (existingMember.getIsDeleted()) {
+                existingMember.setIsDeleted(false);
+                existingMember.setNickname(nickname);
+                existingMember.setPassword(bCryptPasswordEncoder.encode(password));
+                existingMember.setUnivName(findUniversityByName.getName());
+                existingMember.setCancellationDate(null);
+                memberRepository.save(existingMember);
+                return;
+            } else {
+                throw new AlreadyExistMemberException("이미 가입된 회원입니다.");
+            }
         }
 
+        Boolean isNicknameExist = memberRepository.existsByNickname(nickname);
         if (isNicknameExist) {
             throw new AlreadyExistMemberException("중복된 닉네임입니다.");
         }
 
         if (isAccept && isEmailAuthenticated) {
-            Member member = new Member();
-            member.setEmail(email);
-            member.setPassword(bCryptPasswordEncoder.encode(password));
-            member.setNickname(nickname);
-            member.setUnivName(findUniversityByName.getName());
-            memberRepository.save(member);
+            Member newMember = new Member();
+            newMember.setEmail(email);
+            newMember.setPassword(bCryptPasswordEncoder.encode(password));
+            newMember.setNickname(nickname);
+            newMember.setUnivName(findUniversityByName.getName());
+            memberRepository.save(newMember);
         } else {
             throw new NotEnoughInfoException("회원가입에 필요한 정보가 모두 입력되지 않았습니다.");
         }
-
     }
+
 
     public Map<String, String> createNewTokens(String refreshToken) {
         RefreshToken findToken = refreshTokenRepository.findById(refreshToken)
@@ -157,5 +167,14 @@ public class MemberService {
         memberDto.setUnivName(member.getUnivName());
 
         return memberDto;
+    }
+
+    public void deleteMember(String accessToken) {
+        String email = jwtUtil.getUsername(accessToken);
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
+
+        member.delete();  // 소프트 삭제 처리
+        memberRepository.save(member);
     }
 }

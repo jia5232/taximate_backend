@@ -59,4 +59,11 @@ public class MemberController {
     public String testLogin(){
         return "testLogin";
     }
+
+    @DeleteMapping("/member")
+    public ResponseEntity<Void> deleteMember(@RequestHeader("Authorization") String authorization) {
+        String accessToken = authorization.split(" ")[1];
+        memberService.deleteMember(accessToken);
+        return ResponseEntity.noContent().build();
+    }
 }

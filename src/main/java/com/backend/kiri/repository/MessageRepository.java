@@ -18,6 +18,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT m FROM Message m WHERE m.chatRoom = :chatRoom ORDER BY m.createdTime DESC")
     List<Message> findFirstByChatRoomCustom(@Param("chatRoom") ChatRoom chatRoom, Pageable pageable);
 
+    @Query("SELECT m FROM Message m WHERE m.chatRoom = :chatRoom ORDER BY m.createdTime DESC")
+    List<Message> findFirstByChatRoomOrderByCreatedTimeDesc(@Param("chatRoom") ChatRoom chatRoom, Pageable pageable);
+
     List<Message> findByChatRoom(ChatRoom chatRoom);
 
     // 읽지않은 메시지 개수 조회용.
