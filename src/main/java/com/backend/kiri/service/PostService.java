@@ -292,6 +292,39 @@ public class PostService {
         return postListDto;
     }
 
+    @Transactional(readOnly = true)
+    public PostListDto getJoinedPosts(Pageable pageable, Long lastPostId, String accessToken) {
+        String email = jwtUtil.getUsername(accessToken);
+
+        Specification<Post> spec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            Join<Post, MemberPost> memberPostJoin = root.join("memberPosts");
+            predicates.add(criteriaBuilder.equal(memberPostJoin.get("member").get("email"), email));
+            predicates.add(criteriaBuilder.isFalse(root.get("isDeleted")));
+
+            if (lastPostId != 0) {
+                predicates.add(criteriaBuilder.greaterThan(root.get("id"), lastPostId));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<Post> page = postRepository.findAll(spec, pageable);
+        List<PostDetailDto> postDetailDtos = page.getContent().stream()
+                .map(post -> convertToDetailDto(post, email))
+                .collect(Collectors.toList());
+
+        PostListDto postListDto = new PostListDto();
+        postListDto.setData(postDetailDtos);
+
+        PostListDto.MetaData metaData = new PostListDto.MetaData();
+        metaData.setCount(postDetailDtos.size());
+        metaData.setHasMore(!page.isLast());
+        postListDto.setMeta(metaData);
+
+        return postListDto;
+    }
+
     private static PostDetailDto convertToDetailDto(Post findPost, String email) {
         PostDetailDto postDetailDto = new PostDetailDto();
         postDetailDto.setId(findPost.getId());

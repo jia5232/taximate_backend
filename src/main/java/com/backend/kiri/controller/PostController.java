@@ -90,4 +90,16 @@ public class PostController {
         PostListDto postListDto = postService.getMyPosts(pageable, lastPostId, accessToken);
         return ResponseEntity.ok(postListDto);
     }
+
+    @GetMapping("/joined")
+    public ResponseEntity<PostListDto> getJoinedPosts(
+            @RequestParam(required = false, defaultValue = "0") Long lastPostId,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        String accessToken = authorization.split(" ")[1];
+        Pageable pageable = PageRequest.of(0, pageSize);
+        PostListDto postListDto = postService.getJoinedPosts(pageable, lastPostId, accessToken);
+        return ResponseEntity.ok(postListDto);
+    }
 }
