@@ -70,7 +70,6 @@ public class SecurityConfig {
                         "/validateEmailSuffix",
                         "/api/password/reset/request",
                         "/api/password/reset/confirm",
-                        "/ws-stomp/**",
                         "/error",
                         "/swagger-ui/**",
                         "/v3/api-docs/**", // OpenAPI 문서

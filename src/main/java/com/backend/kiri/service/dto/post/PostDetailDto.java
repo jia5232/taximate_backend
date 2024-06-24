@@ -3,11 +3,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-
 @ToString
 @Getter @Setter
-public class PostDetailDto extends PostFormDto{
+public class PostDetailDto extends PostFormDto {
     private Long id;
-    private Long chatRoomId;
     private Boolean isAuthor;
+    private String openChatLink;
+    private String authorName;
 }

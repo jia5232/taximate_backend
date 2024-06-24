@@ -12,38 +12,60 @@ import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
+@RequestMapping("/posts")
 public class PostController {
-    final PostService postService;
+    private final PostService postService;
 
-    @PostMapping("/posts/create")
-    public ResponseEntity createPost(@RequestBody PostFormDto postFormDto, @RequestHeader("Authorization") String authorization) {
+    @PostMapping("/create")
+    public ResponseEntity<Long> createPost(@RequestBody PostFormDto postFormDto, @RequestHeader("Authorization") String authorization) {
         String accessToken = authorization.split(" ")[1];
         Long postId = postService.createPost(postFormDto, accessToken);
         return ResponseEntity.ok(postId);
     }
 
-    @GetMapping("/posts/{postId}")
+    @GetMapping("/{postId}")
     public ResponseEntity<PostDetailDto> detailPost(@PathVariable Long postId, @RequestHeader("Authorization") String authorization) {
         String accessToken = authorization.split(" ")[1];
         PostDetailDto postDetailDto = postService.detailPost(postId, accessToken);
         return ResponseEntity.ok(postDetailDto);
     }
 
-    @PutMapping("/posts/{postId}")
-    public ResponseEntity updatePost(@PathVariable Long postId, @RequestBody PostFormDto postFormDto, @RequestHeader("Authorization") String authorization){
+    @PutMapping("/{postId}")
+    public ResponseEntity<Long> updatePost(@PathVariable Long postId, @RequestBody PostFormDto postFormDto, @RequestHeader("Authorization") String authorization){
         String accessToken = authorization.split(" ")[1];
         Long id = postService.updatePost(postId, postFormDto, accessToken);
         return ResponseEntity.ok(id);
     }
 
-    @DeleteMapping("/posts/{postId}")
-    public ResponseEntity deletePost(@PathVariable Long postId, @RequestHeader("Authorization") String authorization){
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Long> deletePost(@PathVariable Long postId, @RequestHeader("Authorization") String authorization){
         String accessToken = authorization.split(" ")[1];
         postService.deletePost(postId, accessToken);
         return ResponseEntity.ok(postId);
     }
 
-    @GetMapping("/posts")
+    @PostMapping("/join/{postId}")
+    public ResponseEntity<Void> joinPost(@PathVariable Long postId, @RequestHeader("Authorization") String authorization) {
+        String accessToken = authorization.split(" ")[1];
+        postService.joinPost(postId, accessToken);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/leave/{postId}")
+    public ResponseEntity<Void> leavePost(@PathVariable Long postId, @RequestHeader("Authorization") String authorization) {
+        String accessToken = authorization.split(" ")[1];
+        postService.leavePost(postId, accessToken);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/is-joined/{postId}")
+    public ResponseEntity<Boolean> isJoined(@PathVariable Long postId, @RequestHeader("Authorization") String authorization) {
+        String accessToken = authorization.split(" ")[1];
+        boolean isJoined = postService.isMemberJoined(postId, accessToken);
+        return ResponseEntity.ok(isJoined);
+    }
+
+    @GetMapping
     public ResponseEntity<PostListDto> getPosts(
             @RequestParam(required = false, defaultValue = "0") Long lastPostId,
             @RequestParam(defaultValue = "20") int pageSize,
@@ -57,7 +79,7 @@ public class PostController {
         return ResponseEntity.ok(postListDto);
     }
 
-    @GetMapping("/posts/myposts")
+    @GetMapping("/myposts")
     public ResponseEntity<PostListDto> getMyPosts(
             @RequestParam(required = false, defaultValue = "0") Long lastPostId,
             @RequestParam(defaultValue = "10") int pageSize,
@@ -67,13 +89,5 @@ public class PostController {
         Pageable pageable = PageRequest.of(0, pageSize);
         PostListDto postListDto = postService.getMyPosts(pageable, lastPostId, accessToken);
         return ResponseEntity.ok(postListDto);
-    }
-
-    //채팅방에서 post 정보를 조회하기 위한 api
-    @GetMapping("/posts/info/{chatRoomId}")
-    public ResponseEntity<PostDetailDto> getPostInfoByChatRoomId(@PathVariable Long chatRoomId, @RequestHeader("Authorization") String authorization) {
-        String accessToken = authorization.split(" ")[1];
-        PostDetailDto postDetailDto = postService.getPostInfoByChatRoomId(chatRoomId, accessToken);
-        return ResponseEntity.ok(postDetailDto);
     }
 }
