@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificationExecutor<Post> {
-    Optional<Post> findByIdAndIsDeletedFalse(Long postId);
+    Optional<Post> findByIdAndIsDeletedFalse(@Param("postId") Long postId);
 
     @Query("SELECT p FROM Post p WHERE p.isDeleted = false")
     List<Post> findAllActive();

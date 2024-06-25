@@ -29,4 +29,12 @@ public class MemberPost {
         this.member = member;
         this.isAuthor = isAuthor;
     }
+
+    @Override
+    public String toString() {
+        return "MemberPost{" +
+                "id=" + id +
+                ", isAuthor=" + isAuthor +
+                '}';
+    }
 }

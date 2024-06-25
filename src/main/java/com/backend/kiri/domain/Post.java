@@ -51,4 +51,21 @@ public class Post {
     public void delete() {
         this.isDeleted = true;
     }
+
+    @Override
+    public String toString() {
+        return "Post{" +
+                "id=" + id +
+                ", isFromSchool=" + isFromSchool +
+                ", depart='" + depart + '\'' +
+                ", arrive='" + arrive + '\'' +
+                ", departTime=" + departTime +
+                ", createdTime=" + createdTime +
+                ", cost=" + cost +
+                ", maxMember=" + maxMember +
+                ", nowMember=" + nowMember +
+                ", isDeleted=" + isDeleted +
+                ", openChatLink='" + openChatLink + '\'' +
+                '}';
+    }
 }
