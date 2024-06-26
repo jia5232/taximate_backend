@@ -54,8 +54,10 @@ public class PostController {
     @PostMapping("/leave/{postId}")
     public ResponseEntity<Void> leavePost(@PathVariable Long postId, @RequestHeader("Authorization") String authorization) {
         String accessToken = authorization.split(" ")[1];
+        System.out.println("leavePost endpoint hit - postId: " + postId); // Add logging
         postService.leavePost(postId, accessToken);
-        return ResponseEntity.ok().build();
+        System.out.println("leavePost service method completed."); // Add logging
+        return ResponseEntity.ok().build(); // Ensure this does not cause a redirection
     }
 
     @GetMapping("/is-joined/{postId}")
