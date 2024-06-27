@@ -21,7 +21,7 @@ public class Member {
     private Boolean isDeleted = false;
     private LocalDateTime cancellationDate;
 
-    @OneToMany(mappedBy = "member", orphanRemoval = true)
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MemberPost> memberPosts = new ArrayList<>();
 
     public void delete() {
