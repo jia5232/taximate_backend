@@ -10,4 +10,5 @@ public class PostDetailDto extends PostFormDto {
     private Boolean isAuthor;
     private String openChatLink;
     private String authorName;
+    private Long authorId;
 }

@@ -356,10 +356,12 @@ public class PostService {
 
         String authorName = null;
         boolean isAuthor = false;
+        Long authorId = null;
 
         for (MemberPost mp : findPost.getMemberPosts()) {
             if (Boolean.TRUE.equals(mp.getIsAuthor())) {
                 authorName = mp.getMember().getNickname();
+                authorId = mp.getMember().getId();
             }
             if (mp.getMember().getEmail().equals(email) && Boolean.TRUE.equals(mp.getIsAuthor())) {
                 isAuthor = true;
@@ -371,6 +373,7 @@ public class PostService {
 
         postDetailDto.setIsAuthor(isAuthor);
         postDetailDto.setAuthorName(authorName);
+        postDetailDto.setAuthorId(authorId);
 
         return postDetailDto;
     }
