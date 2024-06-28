@@ -24,9 +24,24 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MemberPost> memberPosts = new ArrayList<>();
 
+    @OneToMany(mappedBy = "blocker", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Block> blockedMembers = new ArrayList<>();
+
     public void delete() {
         this.isDeleted = true;
         this.nickname = "(알 수 없음)";
         this.cancellationDate = LocalDateTime.now();
+    }
+
+    @Override
+    public String toString() {
+        return "Member{" +
+                "id=" + id +
+                ", nickname='" + nickname + '\'' +
+                ", email='" + email + '\'' +
+                ", univName='" + univName + '\'' +
+                ", isDeleted=" + isDeleted +
+                ", cancellationDate=" + cancellationDate +
+                '}';
     }
 }

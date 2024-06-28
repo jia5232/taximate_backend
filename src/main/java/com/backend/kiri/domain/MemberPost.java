@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,13 +24,17 @@ public class MemberPost {
 
     private Boolean isAuthor;
 
-    // 마지막으로 채팅방 메시지를 읽은 시간을 저장하기 위한 필드.
-    private LocalDateTime lastReadAt;
-
-    public MemberPost(Post post, Member member, boolean isAuthor, LocalDateTime lastReadAt) {
+    public MemberPost(Post post, Member member, boolean isAuthor) {
         this.post = post;
         this.member = member;
         this.isAuthor = isAuthor;
-        this.lastReadAt = lastReadAt;
+    }
+
+    @Override
+    public String toString() {
+        return "MemberPost{" +
+                "id=" + id +
+                ", isAuthor=" + isAuthor +
+                '}';
     }
 }

@@ -1,37 +1,37 @@
 package com.backend.kiri.service;
 
-import com.backend.kiri.domain.ChatRoom;
 import com.backend.kiri.domain.Member;
 import com.backend.kiri.domain.MemberPost;
 import com.backend.kiri.domain.Post;
 import com.backend.kiri.exception.exceptions.*;
 import com.backend.kiri.jwt.JWTUtil;
+import com.backend.kiri.repository.BlockRepository;
+import com.backend.kiri.repository.MemberPostRepository;
 import com.backend.kiri.repository.MemberRepository;
 import com.backend.kiri.repository.PostRepository;
 import com.backend.kiri.service.dto.post.PostDetailDto;
 import com.backend.kiri.service.dto.post.PostFormDto;
 import com.backend.kiri.service.dto.post.PostListDto;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
-import jakarta.persistence.criteria.Predicate;
-import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 public class PostService {
     final PostRepository postRepository;
     final MemberRepository memberRepository;
+    final MemberPostRepository memberPostRepository;
+    final BlockRepository blockRepository;
     private final JWTUtil jwtUtil;
 
     public Long createPost(PostFormDto postFormDto, String accessToken) {
@@ -64,13 +66,9 @@ public class PostService {
         post.setCost(postFormDto.getCost());
         post.setMaxMember(postFormDto.getMaxMember());
         post.setNowMember(postFormDto.getNowMember());
-
-        // 채팅방 생성 및 연관관계 설정.
-        ChatRoom chatRoom = new ChatRoom();
-        post.setChatRoom(chatRoom); // post의 연관관계 메서드 사용
+        post.setOpenChatLink(postFormDto.getOpenChatLink());  // 오픈채팅방 링크 설정
 
         // MemberPost생성을 위한 작업
-        // 글 작성자는 글을 작성할 때 이걸 통해서 joinChatRoom() 처리가 됨!
         post.addMember(member, true);
 
         postRepository.save(post);
@@ -105,19 +103,11 @@ public class PostService {
         // 플러터에서 '2024-01-26T13:17:00.000' 형식으로 들어온 스트링을 LocalDateTime format으로 변경
         LocalDateTime formattedDepartTime = getFormattedDepartTime(postFormDto);
         post.setDepartTime(formattedDepartTime);
+        post.setOpenChatLink(postFormDto.getOpenChatLink());  // 오픈채팅방 링크 설정
 
         postRepository.save(post);
 
         return post.getId();
-    }
-
-    private LocalDateTime getFormattedDepartTime(PostFormDto postFormDto) {
-        String departTimeString = postFormDto.getDepartTime();
-        LocalDateTime departTime = LocalDateTime.parse(departTimeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        ZoneId seoulZoneId = ZoneId.of("Asia/Seoul");
-        ZonedDateTime seoulZoneDepartTime = departTime.atZone(seoulZoneId);
-        LocalDateTime realDepartTime = seoulZoneDepartTime.toLocalDateTime();
-        return realDepartTime;
     }
 
     public void deletePost(Long postId, String accessToken){
@@ -145,16 +135,74 @@ public class PostService {
         postRepository.save(post);
     }
 
+    public void joinPost(Long postId, String accessToken) {
+        String email = jwtUtil.getUsername(accessToken);
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId).orElseThrow(() -> new NotFoundPostException("Not Found Post"));
+
+        if (post.getNowMember() >= post.getMaxMember()) {
+            throw new ChatRoomFullException("인원 초과입니다.");
+        }
+
+        MemberPost memberPost = new MemberPost(post, member, false);
+        memberPost = memberPostRepository.saveAndFlush(memberPost);
+
+        post.setNowMember(post.getNowMember() + 1); // 현재 인원수 증가
+        post = postRepository.save(post);
+    }
+
+    public boolean isMemberJoined(Long postId, String accessToken) {
+        String email = jwtUtil.getUsername(accessToken);
+
+        Optional<Post> postOptional = postRepository.findById(postId);
+        Optional<Member> memberOptional = memberRepository.findByEmail(email);
+
+        if (!postOptional.isPresent() || !memberOptional.isPresent()) {
+            return false;
+        }
+
+        Post post = postOptional.get();
+        Member member = memberOptional.get();
+
+        boolean isMemberJoined = post.getMemberPosts().stream()
+                .anyMatch(mp -> mp.getMember().equals(member));
+
+        return isMemberJoined;
+    }
+
+    public void leavePost(Long postId, String accessToken) {
+        String email = jwtUtil.getUsername(accessToken);
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
+        Post post = postRepository.findByIdAndIsDeletedFalse(postId).orElseThrow(() -> new NotFoundPostException("Not Found Post"));
+
+        post.removeMember(member);
+        post.setNowMember(post.getNowMember() - 1); // 현재 인원수 감소
+        postRepository.save(post);
+    }
+
+    private LocalDateTime getFormattedDepartTime(PostFormDto postFormDto) {
+        String departTimeString = postFormDto.getDepartTime();
+        LocalDateTime departTime = LocalDateTime.parse(departTimeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        ZoneId seoulZoneId = ZoneId.of("Asia/Seoul");
+        ZonedDateTime seoulZoneDepartTime = departTime.atZone(seoulZoneId);
+        LocalDateTime realDepartTime = seoulZoneDepartTime.toLocalDateTime();
+        return realDepartTime;
+    }
+
     public PostListDto getFilteredPosts(Pageable pageable, Long lastPostId, Boolean isFromSchool, String searchKeyword, String accessToken){
         String email = jwtUtil.getUsername(accessToken);
 
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
 
+        List<Long> blockedMemberIds = blockRepository.findByBlocker(member)
+                .stream()
+                .map(block -> block.getBlocked().getId())
+                .collect(Collectors.toList());
+
         Specification<Post> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // 출발 시간이 현재보다 지난 게시물은 필터링
             predicates.add(criteriaBuilder.greaterThan(root.get("departTime"), LocalDateTime.now()));
 
             if(lastPostId != null){
@@ -171,25 +219,34 @@ public class PostService {
                 predicates.add(criteriaBuilder.or(departPredicate, arrivePredicate));
             }
 
-            // MemberPost와 Member로 조인하여 대학교 이름으로 필터링
             Subquery<MemberPost> memberPostSubquery = query.subquery(MemberPost.class);
             Root<MemberPost> memberPostRoot = memberPostSubquery.from(MemberPost.class);
             Join<MemberPost, Member> memberJoin = memberPostRoot.join("member");
             memberPostSubquery.select(memberPostRoot);
             memberPostSubquery.where(
                     criteriaBuilder.equal(memberJoin.get("univName"), member.getUnivName()),
-                    criteriaBuilder.equal(memberPostRoot.get("post"), root) // MemberPost로 Post를 찾아서 비교
+                    criteriaBuilder.equal(memberPostRoot.get("post"), root)
             );
 
             predicates.add(criteriaBuilder.exists(memberPostSubquery));
 
-            // 소프트 삭제되지 않은 게시물만 필터링
             predicates.add(criteriaBuilder.isFalse(root.get("isDeleted")));
+
+            if (!blockedMemberIds.isEmpty()) {
+                Subquery<MemberPost> blockSubquery = query.subquery(MemberPost.class);
+                Root<MemberPost> blockRoot = blockSubquery.from(MemberPost.class);
+                blockSubquery.select(blockRoot);
+                blockSubquery.where(
+                        blockRoot.get("member").get("id").in(blockedMemberIds),
+                        criteriaBuilder.equal(blockRoot.get("post"), root)
+                );
+
+                predicates.add(criteriaBuilder.not(criteriaBuilder.exists(blockSubquery)));
+            }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
-        // 출발 시간이 임박한 순으로 정렬
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.ASC, "departTime"));
 
         Page<Post> page = postRepository.findAll(spec, pageable);
@@ -252,16 +309,42 @@ public class PostService {
         return postListDto;
     }
 
-    public PostDetailDto getPostInfoByChatRoomId(Long chatRoomId, String accessToken){
+    @Transactional(readOnly = true)
+    public PostListDto getJoinedPosts(Pageable pageable, Long lastPostId, String accessToken) {
         String email = jwtUtil.getUsername(accessToken);
-        Post post = postRepository.findByChatRoom_IdAndIsDeletedFalse(chatRoomId).orElseThrow(() -> new NotFoundChatRoomException("Not Found ChatRoom"));
-        return convertToDetailDto(post, email);
+
+        Specification<Post> spec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            Join<Post, MemberPost> memberPostJoin = root.join("memberPosts");
+            predicates.add(criteriaBuilder.equal(memberPostJoin.get("member").get("email"), email));
+            predicates.add(criteriaBuilder.isFalse(root.get("isDeleted")));
+
+            if (lastPostId != 0) {
+                predicates.add(criteriaBuilder.greaterThan(root.get("id"), lastPostId));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<Post> page = postRepository.findAll(spec, pageable);
+        List<PostDetailDto> postDetailDtos = page.getContent().stream()
+                .map(post -> convertToDetailDto(post, email))
+                .collect(Collectors.toList());
+
+        PostListDto postListDto = new PostListDto();
+        postListDto.setData(postDetailDtos);
+
+        PostListDto.MetaData metaData = new PostListDto.MetaData();
+        metaData.setCount(postDetailDtos.size());
+        metaData.setHasMore(!page.isLast());
+        postListDto.setMeta(metaData);
+
+        return postListDto;
     }
 
     private static PostDetailDto convertToDetailDto(Post findPost, String email) {
         PostDetailDto postDetailDto = new PostDetailDto();
         postDetailDto.setId(findPost.getId());
-        postDetailDto.setChatRoomId(findPost.getChatRoom().getId());
         postDetailDto.setIsFromSchool(findPost.isFromSchool());
         postDetailDto.setDepart(findPost.getDepart());
         postDetailDto.setArrive(findPost.getArrive());
@@ -269,20 +352,34 @@ public class PostService {
         postDetailDto.setCost(findPost.getCost());
         postDetailDto.setMaxMember(findPost.getMaxMember());
         postDetailDto.setNowMember(findPost.getNowMember());
+        postDetailDto.setOpenChatLink(findPost.getOpenChatLink());
 
-        boolean isAuthor = findPost.getMemberPosts().stream()
-                .anyMatch(mp -> mp.getMember().getEmail().equals(email) && Boolean.TRUE.equals(mp.getIsAuthor()));
+        String authorName = null;
+        boolean isAuthor = false;
+
+        for (MemberPost mp : findPost.getMemberPosts()) {
+            if (Boolean.TRUE.equals(mp.getIsAuthor())) {
+                authorName = mp.getMember().getNickname();
+            }
+            if (mp.getMember().getEmail().equals(email) && Boolean.TRUE.equals(mp.getIsAuthor())) {
+                isAuthor = true;
+            }
+            if (authorName != null && isAuthor) {
+                break;
+            }
+        }
 
         postDetailDto.setIsAuthor(isAuthor);
+        postDetailDto.setAuthorName(authorName);
 
         return postDetailDto;
     }
+
 
     // 마이페이지 내가 쓴 글 조회용
     private static PostDetailDto convertToMyPageDetailDto(Post findPost) {
         PostDetailDto postDetailDto = new PostDetailDto();
         postDetailDto.setId(findPost.getId());
-        postDetailDto.setChatRoomId(findPost.getChatRoom().getId());
         postDetailDto.setIsFromSchool(findPost.isFromSchool());
         postDetailDto.setDepart(findPost.getDepart());
         postDetailDto.setArrive(findPost.getArrive());
@@ -291,8 +388,19 @@ public class PostService {
         postDetailDto.setMaxMember(findPost.getMaxMember());
         postDetailDto.setNowMember(findPost.getNowMember());
         postDetailDto.setIsAuthor(true);
+        postDetailDto.setOpenChatLink(findPost.getOpenChatLink());
+
+        String authorName = null;
+
+        for (MemberPost mp : findPost.getMemberPosts()) {
+            if (Boolean.TRUE.equals(mp.getIsAuthor())) {
+                authorName = mp.getMember().getNickname();
+                break;
+            }
+        }
+
+        postDetailDto.setAuthorName(authorName);
 
         return postDetailDto;
     }
 }
-

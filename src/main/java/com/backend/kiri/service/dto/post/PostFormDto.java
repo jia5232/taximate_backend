@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.validator.constraints.Range;
 
+import org.hibernate.validator.constraints.Range;
 
 @ToString
 @Getter @Setter
@@ -25,4 +25,6 @@ public class PostFormDto {
     private int maxMember;
     @NotBlank
     private int nowMember;
+    @NotBlank
+    private String openChatLink;  // 오픈채팅방 링크 추가
 }

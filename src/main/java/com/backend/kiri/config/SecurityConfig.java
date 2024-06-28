@@ -61,7 +61,6 @@ public class SecurityConfig {
         http.authorizeHttpRequests((auth) -> auth
                 .requestMatchers(
                         "/login",
-                        "/",
                         "/signup",
                         "/token",
                         "/universities/search",
@@ -70,15 +69,14 @@ public class SecurityConfig {
                         "/validateEmailSuffix",
                         "/api/password/reset/request",
                         "/api/password/reset/confirm",
-                        "/ws-stomp/**",
                         "/error",
                         "/swagger-ui/**",
-                        "/v3/api-docs/**", // OpenAPI 문서
+                        "/v3/api-docs/**",
                         "/swagger-ui.html",
                         "/webjars/**",
                         "/swagger-resources/**",
-                        "/swagger-resources",
-                        "/proxy/**").permitAll()
+                        "/swagger-resources"
+                ).permitAll()
                 .anyRequest().authenticated());
         // 에러
         http.exceptionHandling((exceptionHandling) -> exceptionHandling
