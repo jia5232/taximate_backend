@@ -13,14 +13,16 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
-    public ErrorResult exHandle(Exception e) {
-        return new ErrorResult("EX", "알 수 없는 오류가 발생했습니다.");
+    public ResponseEntity<ErrorResult> exHandle(Exception e) {
+        ErrorResult errorResult = new ErrorResult("EX", "알 수 없는 오류가 발생했습니다.");
+        return new ResponseEntity<>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException.class)
-    public ErrorResult illegalExHandle(IllegalArgumentException e) {
-        return new ErrorResult("BAD", "잘못된 요청입니다.");
+    public ResponseEntity<ErrorResult> illegalExHandle(IllegalArgumentException e) {
+        ErrorResult errorResult = new ErrorResult("BAD", "잘못된 요청입니다.");
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
@@ -67,14 +69,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotFoundUniversityException.class)
     public ResponseEntity<ErrorResult> notFoundUniversityExHandle(NotFoundUniversityException e) {
-        ErrorResult errorResult = new ErrorResult("NOT FOUND TOKEN EX", e.getMessage());
+        ErrorResult errorResult = new ErrorResult("NOT FOUND UNIVERSITY EX", e.getMessage());
         return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<ErrorResult> unauthorizedAccessExHandle(UnauthorizedAccessException e) {
         ErrorResult errorResult = new ErrorResult("UNAUTHORIZED ACCESS EX", e.getMessage());
-        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResult, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(AlreadyExistMemberException.class)
@@ -98,6 +100,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IncorrectPasswordException.class)
     public ResponseEntity<ErrorResult> incorrectPasswordExHandle(IncorrectPasswordException e) {
         ErrorResult errorResult = new ErrorResult("INCORRECT PASSWORD EX", e.getMessage());
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AlreadyBlockedException.class)
+    public ResponseEntity<ErrorResult> alreadyBlockedExHandle(AlreadyBlockedException e) {
+        ErrorResult errorResult = new ErrorResult("ALREADY BLOCKED EX", e.getMessage());
         return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
     }
 }

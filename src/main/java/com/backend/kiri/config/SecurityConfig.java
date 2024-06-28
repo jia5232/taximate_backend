@@ -86,11 +86,11 @@ public class SecurityConfig {
                     response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
                 }));
 
-        // UsernamePasswordAuthenticationFilter의 자리를 우리의 커스텀 필터로 대체한다.
-        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), refreshTokenRepository, jwtUtil, objectMapper), UsernamePasswordAuthenticationFilter.class);
-
         // LoginFilter 앞에 JWTFilter를 넣어준다.
         http.addFilterBefore(new JWTFilter(jwtUtil, refreshTokenRepository), LoginFilter.class);
+
+        // UsernamePasswordAuthenticationFilter의 자리를 우리의 커스텀 필터로 대체한다.
+        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), refreshTokenRepository, jwtUtil, objectMapper), UsernamePasswordAuthenticationFilter.class);
 
         // jwt방식에서는 세션을 stateless하게 관리한다.
         http.sessionManagement((session) -> session

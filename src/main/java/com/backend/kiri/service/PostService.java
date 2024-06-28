@@ -5,6 +5,7 @@ import com.backend.kiri.domain.MemberPost;
 import com.backend.kiri.domain.Post;
 import com.backend.kiri.exception.exceptions.*;
 import com.backend.kiri.jwt.JWTUtil;
+import com.backend.kiri.repository.BlockRepository;
 import com.backend.kiri.repository.MemberPostRepository;
 import com.backend.kiri.repository.MemberRepository;
 import com.backend.kiri.repository.PostRepository;
@@ -40,6 +41,7 @@ public class PostService {
     final PostRepository postRepository;
     final MemberRepository memberRepository;
     final MemberPostRepository memberPostRepository;
+    final BlockRepository blockRepository;
     private final JWTUtil jwtUtil;
 
     public Long createPost(PostFormDto postFormDto, String accessToken) {
@@ -142,9 +144,11 @@ public class PostService {
             throw new ChatRoomFullException("인원 초과입니다.");
         }
 
-        post.addMember(member, false);
+        MemberPost memberPost = new MemberPost(post, member, false);
+        memberPost = memberPostRepository.saveAndFlush(memberPost);
+
         post.setNowMember(post.getNowMember() + 1); // 현재 인원수 증가
-        postRepository.save(post);
+        post = postRepository.save(post);
     }
 
     public boolean isMemberJoined(Long postId, String accessToken) {
@@ -191,10 +195,14 @@ public class PostService {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
 
+        List<Long> blockedMemberIds = blockRepository.findByBlocker(member)
+                .stream()
+                .map(block -> block.getBlocked().getId())
+                .collect(Collectors.toList());
+
         Specification<Post> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // 출발 시간이 현재보다 지난 게시물은 필터링
             predicates.add(criteriaBuilder.greaterThan(root.get("departTime"), LocalDateTime.now()));
 
             if(lastPostId != null){
@@ -211,25 +219,34 @@ public class PostService {
                 predicates.add(criteriaBuilder.or(departPredicate, arrivePredicate));
             }
 
-            // MemberPost와 Member로 조인하여 대학교 이름으로 필터링
             Subquery<MemberPost> memberPostSubquery = query.subquery(MemberPost.class);
             Root<MemberPost> memberPostRoot = memberPostSubquery.from(MemberPost.class);
             Join<MemberPost, Member> memberJoin = memberPostRoot.join("member");
             memberPostSubquery.select(memberPostRoot);
             memberPostSubquery.where(
                     criteriaBuilder.equal(memberJoin.get("univName"), member.getUnivName()),
-                    criteriaBuilder.equal(memberPostRoot.get("post"), root) // MemberPost로 Post를 찾아서 비교
+                    criteriaBuilder.equal(memberPostRoot.get("post"), root)
             );
 
             predicates.add(criteriaBuilder.exists(memberPostSubquery));
 
-            // 소프트 삭제되지 않은 게시물만 필터링
             predicates.add(criteriaBuilder.isFalse(root.get("isDeleted")));
+
+            if (!blockedMemberIds.isEmpty()) {
+                Subquery<MemberPost> blockSubquery = query.subquery(MemberPost.class);
+                Root<MemberPost> blockRoot = blockSubquery.from(MemberPost.class);
+                blockSubquery.select(blockRoot);
+                blockSubquery.where(
+                        blockRoot.get("member").get("id").in(blockedMemberIds),
+                        criteriaBuilder.equal(blockRoot.get("post"), root)
+                );
+
+                predicates.add(criteriaBuilder.not(criteriaBuilder.exists(blockSubquery)));
+            }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
-        // 출발 시간이 임박한 순으로 정렬
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.ASC, "departTime"));
 
         Page<Post> page = postRepository.findAll(spec, pageable);
