@@ -363,7 +363,7 @@ public class DatabaseInitializer {
                 new University("한국국제대학교", "iuk.ac.kr"),
                 new University("한국기술교육대학교", "koreatech.ac.kr"),
                 new University("한국방송통신대학교", "knou.ac.kr"),
-                new University("한국산업기술대학교", "kpu.ac.kr"),
+                new University("한국공학대학교", "tukorea.ac.kr"),
                 new University("한국성서대학교", "bible.ac.kr"),
                 new University("한국예술종합학교", "karts.ac.kr"),
                 new University("한국외국어대학교", "hufs.ac.kr"),
