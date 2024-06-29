@@ -394,15 +394,18 @@ public class PostService {
         postDetailDto.setOpenChatLink(findPost.getOpenChatLink());
 
         String authorName = null;
+        Long authorId = null;
 
         for (MemberPost mp : findPost.getMemberPosts()) {
             if (Boolean.TRUE.equals(mp.getIsAuthor())) {
                 authorName = mp.getMember().getNickname();
+                authorId = mp.getMember().getId();
                 break;
             }
         }
 
         postDetailDto.setAuthorName(authorName);
+        postDetailDto.setAuthorId(authorId);
 
         return postDetailDto;
     }
