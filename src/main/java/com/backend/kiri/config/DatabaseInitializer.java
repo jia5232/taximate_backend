@@ -86,6 +86,7 @@ public class DatabaseInitializer {
                 new University("문경대학교", "mkc.ac.kr"),
                 new University("배화여자대학교", "baewha.ac.kr"),
                 new University("백석문화대학교", "bscu.ac.kr"),
+                new University("백석예술대학교", "bau.ac.kr"),
                 new University("백제예술대학교", "paekche.ac.kr"),
                 new University("벽성대학", "bs.ac.kr"),
                 new University("부산경상대학교", "bsks.ac.kr"),
