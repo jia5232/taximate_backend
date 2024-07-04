@@ -1,5 +1,6 @@
 package com.backend.taximate.repository;
 
+import com.backend.taximate.domain.Member;
 import com.backend.taximate.domain.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificationExecutor<Post> {
+    List<Post> findAllByAuthor(Member author);
     Optional<Post> findByIdAndIsDeletedFalse(@Param("postId") Long postId);
 
     @Query("SELECT p FROM Post p WHERE p.isDeleted = false")
