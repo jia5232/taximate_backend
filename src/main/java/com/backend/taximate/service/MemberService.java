@@ -1,10 +1,12 @@
 package com.backend.taximate.service;
 
 import com.backend.taximate.domain.Member;
+import com.backend.taximate.domain.Post;
 import com.backend.taximate.domain.security.RefreshToken;
 import com.backend.taximate.domain.university.University;
 import com.backend.taximate.exception.exceptions.*;
 import com.backend.taximate.jwt.JWTUtil;
+import com.backend.taximate.repository.PostRepository;
 import com.backend.taximate.repository.security.RefreshTokenRepository;
 import com.backend.taximate.repository.university.UniversityRepository;
 import com.backend.taximate.service.dto.member.JoinDto;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,6 +31,7 @@ import java.util.Optional;
 @Transactional
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final PostRepository postRepository;
     private final UniversityRepository universityRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -174,7 +178,13 @@ public class MemberService {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundMemberException("Not Found Member"));
 
-        member.delete();  // 소프트 삭제 처리
+        List<Post> posts = postRepository.findAllByAuthor(member);
+        for (Post post : posts) {
+            post.delete();
+            postRepository.save(post);
+        }
+
+        member.delete();
         memberRepository.save(member);
     }
 }

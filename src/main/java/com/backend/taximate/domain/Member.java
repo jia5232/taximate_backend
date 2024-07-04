@@ -27,10 +27,16 @@ public class Member {
     @OneToMany(mappedBy = "blocker", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Block> blockedMembers = new ArrayList<>();
 
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Post> posts = new ArrayList<>(); // 작성한 게시글들
+
     public void delete() {
         this.isDeleted = true;
         this.nickname = "(알 수 없음)";
         this.cancellationDate = LocalDateTime.now();
+        for (Post post : posts) {
+            post.delete();
+        }
     }
 
     @Override
