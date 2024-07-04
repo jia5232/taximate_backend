@@ -68,7 +68,10 @@ public class PostService {
         post.setNowMember(postFormDto.getNowMember());
         post.setOpenChatLink(postFormDto.getOpenChatLink());  // 오픈채팅방 링크 설정
 
-        // MemberPost생성을 위한 작업
+        // 작성자 설정
+        post.setAuthor(member);
+
+        // MemberPost 생성을 위한 작업
         post.addMember(member, true);
 
         postRepository.save(post);
@@ -354,32 +357,16 @@ public class PostService {
         postDetailDto.setNowMember(findPost.getNowMember());
         postDetailDto.setOpenChatLink(findPost.getOpenChatLink());
 
-        String authorName = null;
-        boolean isAuthor = false;
-        Long authorId = null;
+        Member author = findPost.getAuthor();
+        postDetailDto.setAuthorName(author != null ? author.getNickname() : null);
+        postDetailDto.setAuthorId(author != null ? author.getId() : null);
 
-        for (MemberPost mp : findPost.getMemberPosts()) {
-            if (Boolean.TRUE.equals(mp.getIsAuthor())) {
-                authorName = mp.getMember().getNickname();
-                authorId = mp.getMember().getId();
-            }
-            if (mp.getMember().getEmail().equals(email) && Boolean.TRUE.equals(mp.getIsAuthor())) {
-                isAuthor = true;
-            }
-            if (authorName != null && isAuthor) {
-                break;
-            }
-        }
-
+        boolean isAuthor = author != null && author.getEmail().equals(email);
         postDetailDto.setIsAuthor(isAuthor);
-        postDetailDto.setAuthorName(authorName);
-        postDetailDto.setAuthorId(authorId);
 
         return postDetailDto;
     }
 
-
-    // 마이페이지 내가 쓴 글 조회용
     private static PostDetailDto convertToMyPageDetailDto(Post findPost) {
         PostDetailDto postDetailDto = new PostDetailDto();
         postDetailDto.setId(findPost.getId());
@@ -390,22 +377,13 @@ public class PostService {
         postDetailDto.setCost(findPost.getCost());
         postDetailDto.setMaxMember(findPost.getMaxMember());
         postDetailDto.setNowMember(findPost.getNowMember());
-        postDetailDto.setIsAuthor(true);
         postDetailDto.setOpenChatLink(findPost.getOpenChatLink());
 
-        String authorName = null;
-        Long authorId = null;
+        Member author = findPost.getAuthor();
+        postDetailDto.setAuthorName(author != null ? author.getNickname() : null);
+        postDetailDto.setAuthorId(author != null ? author.getId() : null);
 
-        for (MemberPost mp : findPost.getMemberPosts()) {
-            if (Boolean.TRUE.equals(mp.getIsAuthor())) {
-                authorName = mp.getMember().getNickname();
-                authorId = mp.getMember().getId();
-                break;
-            }
-        }
-
-        postDetailDto.setAuthorName(authorName);
-        postDetailDto.setAuthorId(authorId);
+        postDetailDto.setIsAuthor(true);
 
         return postDetailDto;
     }

@@ -27,6 +27,10 @@ public class Post {
     private Boolean isDeleted = false;  // 소프트 삭제 여부 추가
     private String openChatLink;  // 오픈채팅방 링크 추가
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    private Member author;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 40)
     private List<MemberPost> memberPosts = new ArrayList<>();
