@@ -54,6 +54,7 @@
 </br>
 
 <img width="252" alt="글 상세페이지" src="https://github.com/user-attachments/assets/06bf929a-f816-49f4-becd-e417548144f4">
+</br>
 * 모임에 참여하면 오픈채팅을 통해 약속장소를 정하고, 정산을 진행하여 택시를 저렴하게 이용할 수 있습니다.
 </br>
 </br>
