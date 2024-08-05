@@ -17,9 +17,6 @@
 - JPA (Hibernate 6.4.1)
 - Mysql 8.3.0
 
-## 도메인 다이어그램
-
-<img src="https://github.com/jia5232/KIRI_Backend/assets/83686088/a789887f-6c8a-4f98-a3c7-83d62a047945" width="700">
 
 ## 인증 로직 시퀀스 다이어그램
 * 로그인
