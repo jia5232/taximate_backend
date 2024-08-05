@@ -58,10 +58,6 @@ public class MemberService {
         SecureRandom secureRandom = new SecureRandom();
         authNumber = 100000 + secureRandom.nextInt(900000);
 
-        if(email.equals("test1@kookmin.ac.kr")){
-            authNumber = 123456;
-        }
-
         message.setTo(email);
 
         message.setSubject("택시메이트 회원가입을 위한 이메일 인증번호 메일입니다.");
